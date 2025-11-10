@@ -13,3 +13,43 @@ body {
     color-scheme: dark;
   }
 }
+
+
+
+@layer components {
+
+  .rootLayoutContainer {
+    @apply flex justify-between mx-10 items-center max-h-20 h-20;
+
+    .links {
+      @apply flex hidden md:flex gap-10;
+
+    }
+
+    button {
+      @apply cursor-pointer;
+    }
+
+    img {
+      @apply h-5 w-5 transition-all ease-in-out duration-300
+    }
+  }
+
+  #hero {
+
+    .heroContainer {
+
+      @apply flex flex-col items-center;
+
+      h1 {
+        @apply font-semibold text-3xl
+      }
+
+
+    }
+
+  }
+
+
+
+}
