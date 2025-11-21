@@ -1,30 +1,28 @@
 const About = () => {
     return (
 
-        <section id='about' className="p-3 mx-10" >
-            <div className="container h-screen grid grid-cols-1 gap-4 sm:grid-cols-3 sm:grid-rows-3  md:grid-cols-3 md:grid-rows-3  max-w-full ">
-                <div className="gridContainer sm:row-span-2 rounded-2xl  ">
-                    <div className="gridItems  p-2 rounded-2xl shadow-2xl bg-gray-900 ">
-                        <img src="myProfileImg.jpg" alt="myProfile" className=" object-contain  rounded-2xl" />
-                        <div className="content  top-10  ">
-                            <p className="headText text-center">Hi, Im Charitha Iravana</p>
-                            <p className="subText"> Im </p>
-                        </div>
+        <section id='about' className="p-3 mt-20 "  >
+                <h2 className="text-4xl font-semibold">About Me</h2>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-6 md:auto-rows-[18rem]">
+
+                    <div className="flex items-end row-span-2 md:col-span-3 h-60 md:h-full relative overflow-hidden hover-translate-y-1 duration-200 grid-default-color ">
+                    </div>
+
+                     <div className="flex items-end row-span-1 md:col-span-3 h-60 md:h-full relative overflow-hidden hover-translate-y-1 duration-200 grid-default-color ">
+                    </div>
+
+                     <div className="flex items-end row-span-1 md:col-span-3 h-60 md:h-full relative overflow-hidden hover-translate-y-1 duration-200 grid-default-color ">
+                    </div>
+
+                     <div className="flex items-end row-span-1 md:col-span-2 h-60 md:h-full relative overflow-hidden hover-translate-y-1 duration-200 grid-default-color ">
+                    </div>
+
+                     <div className="flex items-end row-span-1 md:col-span-4 h-60 md:h-full relative overflow-hidden hover-translate-y-1 duration-200 grid-default-color ">
                     </div>
 
 
-                </div>
-                <div className="gridContainer col-span-1 lg:row-span-1 bg-green-600 ">
+                </div> 
 
-                </div>
-                <div className="gridContainer col-span-1 lg:row-span-1 bg-green-100 ">
-
-                </div>
-                <div className="gridContainer col-span-2 lg:row-span-1 bg-green-100 ">
-
-                </div>
-
-            </div>
         </section>
     );
 }

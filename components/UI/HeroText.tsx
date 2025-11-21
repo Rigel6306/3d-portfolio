@@ -11,7 +11,7 @@ const HeroText = () => {
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 1 }}
-                className="flex flex-col mx-2 font-semibold text-gray-50 z-100">
+                className="flex flex-col mx-2 font-semibold   z-100">
                 <h1 className="text-4xl  ">Hi, Im Charitha</h1>
                 <h2 className="text-2xl">A FullStack Developer crafting </h2>
             </motion.div>

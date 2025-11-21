@@ -13,7 +13,7 @@ const Loading = ()=>{
 }
 const Hero = () => {
     return ( 
-        <section id="hero" className="relative  overflow-hidden ">
+        <section id="hero" className=" h-[150vh]  verflow-hidden ">
                 {/* <div className="heroContainer h-screen">
                     <h1>Bridging Logic and Aesthetics. Fullstack in Action</h1>
                           
@@ -27,8 +27,13 @@ const Hero = () => {
                     </Canvas>
                     
                 </div> */}
-                <HeroText/>
-                <ParalaxBackground/>
+                    <div className="stickyContainer  sticky top-0  h-screen ">
+                        <HeroText/>
+                    <ParalaxBackground/>
+                    </div>
+                   
+             
+                
                
         </section>
      );

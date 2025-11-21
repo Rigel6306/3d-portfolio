@@ -12,7 +12,7 @@ const ParalaxBackground = () => {
 
     <section id="paralaxBg" className="relative h-[150vh] overflow-x-hidden">
         
-      
+   
       <div className="absolute inset-0 bg-black/40 z-40 h-screen"> 
         <motion.div className="absolute  inset-0 w-full h-screen -z-50"
           style={{
