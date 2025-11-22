@@ -35,7 +35,7 @@ const Card = ({text,className,constraintRef, delay,y,img}:cardProps) => {
             whileDrag={{ scale: 1.1, rotate: 2,  }}
             animate={{ 
                 y: y, 
-                rotate: [0, 2, -2, 0], 
+                rotate: [1, -2, -2, 1], 
                 scale: [1, 1.02, 0.98, 1] 
             }}
         transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" ,delay:delay}}

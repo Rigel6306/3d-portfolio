@@ -13,13 +13,20 @@ const ParalaxBackground = () => {
     <section id="paralaxBg" className="relative h-[150vh] overflow-x-hidden">
         
    
-      <div className="absolute inset-0 bg-black/40 z-40 h-screen"> 
+      <div className="absolute inset-0  z-40 h-screen"> 
         <motion.div className="absolute  inset-0 w-full h-screen -z-50"
           style={{
             backgroundImage: 'url(/paralax/l11.png)',
             backgroundSize: 'cover',
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
+             WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1), rgba(0,0,0,0))',
+              WebkitMaskRepeat: 'no-repeat',
+              WebkitMaskSize: 'cover',
+              maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0))',
+              maskRepeat: 'no-repeat',
+              maskSize: 'cover',
+              willChange:'transform',
            
           }} />
         <motion.div className="absolute  inset-0 w-full h-screen -z-20"
@@ -31,6 +38,8 @@ const ParalaxBackground = () => {
             backgroundSize: 'cover',
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
+            willChange:'transform',
+         
              x:layer1X
           }} />
         <motion.div className="absolute  inset-0 w-full h-screen -z-30"
@@ -42,6 +51,7 @@ const ParalaxBackground = () => {
             backgroundSize: 'cover',
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
+            willChange:'transform',
             x:layer2X
           }} />
         <motion.div className="absolute  inset-0 w-full h-screen -z-10"
@@ -52,7 +62,8 @@ const ParalaxBackground = () => {
             backgroundImage: 'url(/paralax/l3.png)',
             backgroundSize: 'cover',
             backgroundPosition: "center",
-            backgroundRepeat: "no-repeat"
+            backgroundRepeat: "no-repeat",
+            willChange:'transform',
           }} />
       </div>
     </section>

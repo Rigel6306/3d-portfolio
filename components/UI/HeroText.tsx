@@ -1,6 +1,7 @@
 
 import { FlipWords } from "./FlipWord";
 import { motion } from "motion/react";
+import { MorphingText } from "./morphingText";
 const HeroText = () => {
 
 
@@ -20,7 +21,8 @@ const HeroText = () => {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 1, delay: 2 }}
                 className="flipWordContainer my-2 z-100">
-                <FlipWords words={['Scalable', 'Innovative', 'Visually Stunning']} duration={1000} className="text-5xl font-medium" /> 
+                {/* <FlipWords words={['Scalable', 'Innovative', 'Visually Stunning']} duration={1000} className="text-5xl font-medium" />  */}
+                <MorphingText texts={['Scalable', 'Innovative', 'Visually Stunning']} className="text-5xl font-medium text-start"/>
             </motion.div>
             <motion.div 
                  initial={{ opacity: 0, y: 20 }}
