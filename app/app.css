@@ -94,6 +94,9 @@ body {
   .grid-default-color {
     @apply p-6 bg-gradient-to-b from-storm to-indigo rounded-2xl;
   }
+  .grid-default-color2 {
+    @apply p-6 bg-gradient-to-b from-primary to-coral rounded-2xl;
+  }
 
 }
 

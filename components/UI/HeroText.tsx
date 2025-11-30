@@ -7,7 +7,7 @@ const HeroText = () => {
 
     return (
 
-        <div className="container absolute mx-7 flex flex-col text-left bg-clip-text mt-40 ">
+        <div className="container absolute  flex flex-col text-left bg-clip-text mt-40 ">
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}

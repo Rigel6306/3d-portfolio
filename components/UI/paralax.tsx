@@ -10,11 +10,10 @@ const ParalaxBackground = () => {
   const layer2X= useTransform(scrollYProgress,[0,0.5],["0%","70%"])
   return (
 
-    <section id="paralaxBg" className="relative h-[150vh] overflow-x-hidden">
+    <section id="paralaxBg" className=" h-screen overflow-hidden ">
         
-   
-      <div className="absolute inset-0  z-40 h-screen"> 
-        <motion.div className="absolute  inset-0 w-full h-screen -z-50"
+      <div className="absolute inset-0  z-40 h-screen overflow-hidden"> 
+        <motion.div className="absolute inset-0 w-full h-screen -z-50"
           style={{
             backgroundImage: 'url(/paralax/l11.png)',
             backgroundSize: 'cover',

@@ -10,7 +10,7 @@ const RootLayout = () => {
         return (<>
             {
                 layoutLinks.map(({ name, href }) => (
-                    <div className="navLink pb-5 text-center font-semibold sm:flex ">
+                    <div key={name} className="navLink pb-5 text-center font-semibold sm:flex ">
                         <Link key={name} to={href}>{name}</Link>
                     </div>
 

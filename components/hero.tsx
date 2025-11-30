@@ -13,7 +13,7 @@ const Loading = ()=>{
 }
 const Hero = () => {
     return ( 
-        <section id="hero" className=" h-[150vh]  verflow-hidden ">
+        <section id="hero" className=" h-[200vh]  overflow-y-clip ">
                 {/* <div className="heroContainer h-screen">
                     <h1>Bridging Logic and Aesthetics. Fullstack in Action</h1>
                           
@@ -27,7 +27,7 @@ const Hero = () => {
                     </Canvas>
                     
                 </div> */}
-                    <div className="stickyContainer  sticky top-0  h-screen ">
+                    <div className="stickyContainer sticky top-0  h-[110vh] ">
                         <HeroText/>
                     <ParalaxBackground/>
                     </div>

@@ -1,14 +1,16 @@
 import Card from "./UI/card";
 import { useRef } from "react";
+import { Globe } from "./UI/globe";
 const About = () => {
     const constraintRef = useRef<HTMLDivElement>(null);
     return (
 
-        <section id='about' className="p-3 mt-20 "  >
-            <h2 className="text-4xl font-semibold">About Me</h2>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-6 md:auto-rows-[18rem]">
+        <section id='about' className="p-3 mt-40 overflow-x-hidden flex flex-col items-center "  >
+            <h2 className="text-4xl font-semibold my-10">About Me</h2>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-6 md:auto-rows-[18rem]  md:w-[80%] xl:w-[60%]          
+            ">
                 {/* Grid item 1 */}
-                <div className="flex flex-col justify-end items-start  row-span-2 md:col-span-3 h-60 md:h-full relative overflow-hidden hover-translate-y-1 duration-200 grid-default-color ">
+                <div className="flex flex-col justify-end items-start  row-span-2 md:col-span-3 h-60 md:h-full relative overflow-hidden  hover:-translate-y-1  duration-200 grid-default-color ">
                     <div className="imgContainer absolute h-full w-full  top-0 left-0">
                         <img className=" h-full w-full object-cover" src="laptop2.jpg" alt="" />
                     </div>
@@ -36,7 +38,15 @@ const About = () => {
                     <Card img="Next.js.png" constraintRef={constraintRef} delay={0.4} y={[0, -4, 0]} className={"-rotate-4 bottom-35 left-30 h-10! "} />
                 </div>
                 {/* Grid item 3 */}
-                <div className="flex items-end row-span-1 md:col-span-3 h-60 md:h-full relative overflow-hidden hover-translate-y-1 duration-200 grid-default-color ">
+                <div className="flex  items-start row-span-1 md:col-span-3 h-60 md:h-full relative overflow-hidden hover-translate-y-1 duration-200 grid-default-color2 ">
+                    <div className="subText z-10">
+                        <p className="text-2xl">I'm Located in Mars</p>
+                        <p>Open to work in anywhere in the globe</p>
+                        </div>
+                    <figure className=" h-80 w-80 absolute top-[30%] -right-[10%] ">
+                         <Globe/>
+                    </figure>
+                   
                 </div>
                 {/* Grid item 4 */}
                 <div className="flex items-end row-span-1 md:col-span-2 h-60 md:h-full relative overflow-hidden hover-translate-y-1 duration-200 grid-default-color ">

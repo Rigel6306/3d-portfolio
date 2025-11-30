@@ -1,6 +1,7 @@
 import About from "components/about";
 import type { Route } from "./+types/home";
 import Hero from "components/hero";
+import MyProjects from "components/MyProjects";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "New React Router App" },
@@ -14,6 +15,7 @@ export default function Home() {
     <div className="home">
       <Hero/>
       <About/>
+      <MyProjects/>
     </div>
   );
 }
