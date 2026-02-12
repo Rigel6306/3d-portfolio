@@ -1,18 +1,15 @@
-import { p, section } from "motion/react-client";
 import { projectsDetails } from '../constants/consts'
-import { useRef, useState } from "react";
-import { useInView } from "motion/react";
+import {  useState } from "react";
 import ProjectCard from "./UI/projectCard";
-
 const MyProjects = () => {
 
     const [current, setCurrent] = useState({...projectsDetails[1]})
    
     console.log(current)
     return (
-        <section className="h-[450vh] mt-20 mx-10 ">
+        <section className="h-[450vh] mt-20 mx-10  ">
             <h1 className="text-3xl">My Projects</h1>
-            <div className="projectsContainer flex w-full   gap-10">
+            <div className="projectsContainer flex w-full relative  gap-10">
                 <div className="projectItem flex-1 flex flex-col gap-20">
                     {
                         projectsDetails.map((project) => (
