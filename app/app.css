@@ -60,10 +60,10 @@ body {
 @layer components {
 
   .rootLayoutContainer {
-    @apply fixed flex justify-between p-10 items-center bg-black/30 backdrop-blur-3xl  top-0 w-full max-h-20 h-20  z-150 ;
+    @apply fixed flex justify-between p-4 sm:p-6 md:p-10 items-center bg-black/30 backdrop-blur-3xl w-screen top-0 h-16 sm:h-20 z-150 ;
 
     .links {
-      @apply hidden sm:flex gap-10;
+      @apply hidden sm:flex gap-4 md:gap-10;
 
     }
 
@@ -72,7 +72,7 @@ body {
     }
 
     img {
-      @apply h-5 w-5 transition-all ease-in-out duration-300
+      @apply h-4 w-4 sm:h-5 sm:w-5 transition-all ease-in-out duration-300
     }
   }
 

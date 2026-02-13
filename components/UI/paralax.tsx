@@ -11,8 +11,8 @@ const ParalaxBackground = () => {
   return (
 
     <section id="paralaxBg" className=" h-screen overflow-hidden ">
-        
-      <div className="absolute inset-0  z-40 h-screen overflow-hidden"> 
+
+      <div className="absolute inset-0 z-40 h-screen overflow-hidden">
         <motion.div className="absolute inset-0 w-full h-screen -z-50"
           style={{
             backgroundImage: 'url(/paralax/l11.png)',
@@ -26,10 +26,10 @@ const ParalaxBackground = () => {
               maskRepeat: 'no-repeat',
               maskSize: 'cover',
               willChange:'transform',
-           
+
           }} />
-        <motion.div className="absolute  inset-0 w-full h-screen -z-20"
-          initial={{ opacity: 0, x: -300 }}
+        <motion.div className="absolute inset-0 w-full h-screen -z-20"
+          initial={{ opacity: 0, x: -150 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 1.5 }}
           style={{
@@ -38,11 +38,11 @@ const ParalaxBackground = () => {
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
             willChange:'transform',
-         
+
              x:layer1X
           }} />
-        <motion.div className="absolute  inset-0 w-full h-screen -z-30"
-          initial={{ opacity: 0, x: 300 }}
+        <motion.div className="absolute inset-0 w-full h-screen -z-30"
+          initial={{ opacity: 0, x: 150 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 1.5 }}
           style={{
@@ -53,7 +53,7 @@ const ParalaxBackground = () => {
             willChange:'transform',
             x:layer2X
           }} />
-        <motion.div className="absolute  inset-0 w-full h-screen -z-10"
+        <motion.div className="absolute inset-0 w-full h-screen -z-10"
           initial={{ opacity: 0, y: 200 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 2 }}

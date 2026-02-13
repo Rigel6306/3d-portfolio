@@ -12,31 +12,29 @@ const Loading = ()=>{
   return <Html center style={{width:200}}>{`${progress.toFixed(0)}% loading`}</Html>;
 }
 const Hero = () => {
-    return ( 
-        <section id="hero" className=" h-[200vh]  overflow-y-clip ">
+    return (
+        <section id="hero" className=" h-[200vh] sm:h-[200vh] overflow-y-clip ">
                 {/* <div className="heroContainer h-screen">
                     <h1>Bridging Logic and Aesthetics. Fullstack in Action</h1>
-                          
+
                     <Canvas id="canvas" camera={{position:[0,2,5],fov:50,near:0.1,far:100}} gl={{antialias:true}} dpr={[1,2]}>
-                      
+
                         <OrbitControls enableZoom={false}/>
-                           <Suspense fallback={<Loading/>}>      
+                           <Suspense fallback={<Loading/>}>
                         <ComputerSetup scale={0.3} position={[0,0,0]}/>
                         <Lighting/>
                         </Suspense>
                     </Canvas>
-                    
+
                 </div> */}
-                    <div className="stickyContainer sticky top-0  h-[110vh] ">
+                    <div className="stickyContainer sticky top-16 sm:top-20 h-[100vh] sm:h-[110vh] ">
                         <HeroText/>
                     <ParalaxBackground/>
                     </div>
-                   
-             
-                
-               
+
+
         </section>
      );
 }
- 
+
 export default Hero;

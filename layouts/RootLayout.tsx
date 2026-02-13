@@ -10,7 +10,7 @@ const RootLayout = () => {
         return (<>
             {
                 layoutLinks.map(({ name, href }) => (
-                    <div key={name} className="navLink pb-5 text-center font-semibold sm:flex ">
+                    <div key={name} className="navLink pb-3 sm:pb-5 text-center font-semibold sm:flex text-sm sm:text-base ">
                         <Link key={name} to={href}>{name}</Link>
                     </div>
 
@@ -25,7 +25,7 @@ const RootLayout = () => {
 
             <div className="rootLayoutContainer  ">
 
-                <div className="logo pb-5">
+                <div className="logo pb-2 sm:pb-5 text-xs sm:text-base">
                     <h1>Logo</h1>
                 </div>
                 <div className="links ">
@@ -39,15 +39,15 @@ const RootLayout = () => {
             </div>
             <AnimatePresence>
             {!togleMenu &&
-             <motion.div 
-             
+             <motion.div
+
                 initial={{opacity:0,x:-10}}
                 animate={{opacity:1,x:0}}
                 style={{maxHeight:'100vh'}}
                 transition={{duration:0.3}}
                  exit={{ opacity: 0 }}
-            className="block overflow-hidden text-center sm:hidden">
-                <div className="nav pb-5 mt-40">
+            className="block overflow-y-auto text-center sm:hidden pt-20 pb-5 bg-black/20 backdrop-blur-md">
+                <div className="nav pb-5">
 
                     <Nav />
 
