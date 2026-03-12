@@ -20,9 +20,9 @@ const HeroText = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 1, delay: 2 }}
-                className="flipWordContainer my-3 sm:my-4 z-100">
+                className="flipWordContainer my-4 sm:my-1 z-100">
                 {/* <FlipWords words={['Scalable', 'Innovative', 'Visually Stunning']} duration={1000} className="text-5xl font-medium" />  */}
-                <MorphingText texts={['Scalable', 'Innovative', 'Visually Stunning']} className="text-3xl sm:text-4xl md:text-5xl font-medium text-start"/>
+                <MorphingText texts={['Scalable', 'Innovative', 'Visually Stunning']} className="text-4xl sm:text-5xl 3xl:text-3xl md:text-4xl w-200 font-medium text-start"/>
             </motion.div>
             <motion.div
                  initial={{ opacity: 0, y: 20 }}

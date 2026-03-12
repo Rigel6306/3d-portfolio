@@ -1,7 +1,13 @@
 import About from "components/about";
 import type { Route } from "./+types/home";
+import { useEffect } from "react";
 import Hero from "components/hero";
 import MyProjects from "components/MyProjects";
+import StickeyCards from "components/UI/stickyCards";
+
+import { ReactLenis } from 'lenis/react'
+
+
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "New React Router App" },
@@ -10,12 +16,19 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
-  return (
+ 
 
+  return (
+      <ReactLenis root options={{ lerp: 0.2, duration: 1.5, smoothWheel: true }}>
+
+
+   
     <div className="home">
-      <Hero/>
-      <About/>
-      <MyProjects/>
+      <Hero />
+      <About />
+      {/* <MyProjects/> */}
+      <StickeyCards />
     </div>
+       </ReactLenis>
   );
 }

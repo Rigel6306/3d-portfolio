@@ -23,7 +23,7 @@ const RootLayout = () => {
         <>
 
 
-            <div className="rootLayoutContainer  ">
+            <div className="rootLayoutContainer w-full ">
 
                 <div className="logo pb-2 sm:pb-5 text-xs sm:text-base">
                     <h1>Logo</h1>

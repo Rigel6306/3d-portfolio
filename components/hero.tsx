@@ -7,13 +7,15 @@ import { Suspense } from "react";
 import { Html,useProgress } from "@react-three/drei";
 import HeroText from "./UI/HeroText.js";
 import ParalaxBackground from "./UI/paralax.js";
+
+import FluidCanvas from "./UI/fluidCanvas.js";
 const Loading = ()=>{
   const { progress } = useProgress();
   return <Html center style={{width:200}}>{`${progress.toFixed(0)}% loading`}</Html>;
 }
 const Hero = () => {
     return (
-        <section id="hero" className=" h-[200vh] sm:h-[200vh] overflow-y-clip ">
+        <section id="hero" className=" h-[100vh] sm:h-[100vh] overflow-x-hidden">
                 {/* <div className="heroContainer h-screen">
                     <h1>Bridging Logic and Aesthetics. Fullstack in Action</h1>
 
@@ -27,10 +29,11 @@ const Hero = () => {
                     </Canvas>
 
                 </div> */}
-                    <div className="stickyContainer sticky top-16 sm:top-20 h-[100vh] sm:h-[110vh] ">
+                    
                         <HeroText/>
-                    <ParalaxBackground/>
-                    </div>
+                    {/* <ParalaxBackground/> */}
+                    <FluidCanvas/>
+                   
 
 
         </section>
