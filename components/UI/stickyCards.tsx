@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-import PileCard from "./PileCard";
+import PileCard from "./pileCard";
 
 export default function StickyCards() {
   const sectionRef = useRef<HTMLDivElement>(null);
