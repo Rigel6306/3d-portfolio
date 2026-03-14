@@ -5,17 +5,13 @@ import {
   vertexShader,
   fluidFragmentShader,
   displayFragmentShader,
-} from '../../utils/shaders.';
-
-// Import images from src/assets
-// import img1 from "../assets/img1.jpg";
-// import img2 from "../assets/img2.jpg";
+} from "../../utils/shaders.";
 
 const FluidCanvas = () => {
-  const canvasRef = useRef(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
-    const canvas = canvasRef.current as unknown as HTMLCanvasElement;
+    const canvas = canvasRef.current;
     if (!canvas) return;
 
     const renderer = new THREE.WebGLRenderer({
@@ -58,7 +54,9 @@ const FluidCanvas = () => {
     let currentTarget = 0;
 
     // Placeholder textures
-    const createPlaceholderTexture = (color: string | CanvasGradient | CanvasPattern) => {
+    const createPlaceholderTexture = (
+      color: string | CanvasGradient | CanvasPattern
+    ) => {
       const c = document.createElement("canvas");
       c.width = 512;
       c.height = 512;
@@ -69,7 +67,7 @@ const FluidCanvas = () => {
       return new THREE.CanvasTexture(c);
     };
 
-    const topTexture = createPlaceholderTexture("#0000ff");
+    const topTexture = createPlaceholderTexture("#000000");
     const bottomTexture = createPlaceholderTexture("#ff0000");
 
     const trailsMaterial = new THREE.ShaderMaterial({
@@ -87,13 +85,16 @@ const FluidCanvas = () => {
 
     const displayMaterial = new THREE.ShaderMaterial({
       uniforms: {
-        uFluid: { value: null },
+        uFluid: { value: 50 },
         uTopTexture: { value: topTexture },
         uBottomTexture: { value: bottomTexture },
-        uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+        uResolution: {
+          value: new THREE.Vector2(window.innerWidth, window.innerHeight),
+        },
         uDpr: { value: window.devicePixelRatio },
         uTopTextureSize: { value: new THREE.Vector2(1, 1) },
         uBottomTextureSize: { value: new THREE.Vector2(1, 1) },
+        uTime: { value: 10 },
       },
       vertexShader,
       fragmentShader: displayFragmentShader,
@@ -115,7 +116,7 @@ const FluidCanvas = () => {
     renderer.setRenderTarget(null);
 
     // Event handlers
-    const onMouseMove = (event: { clientX: number; clientY: number; }) => {
+    const onMouseMove = (event: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
       prevMouse.copy(mouse);
       mouse.x = (event.clientX - rect.left) / rect.width;
@@ -126,15 +127,34 @@ const FluidCanvas = () => {
 
     const onResize = () => {
       renderer.setSize(window.innerWidth, window.innerHeight);
-      displayMaterial.uniforms.uResolution.value.set(window.innerWidth, window.innerHeight);
+      displayMaterial.uniforms.uResolution.value.set(
+        window.innerWidth,
+        window.innerHeight
+      );
       displayMaterial.uniforms.uDpr.value = window.devicePixelRatio;
     };
 
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("resize", onResize);
 
+    // Visibility tracking
+    let isVisible = true;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          isVisible = entry.isIntersecting;
+          if (isVisible) {
+            animate(); // restart loop when visible again
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(canvas);
+
     // Animation loop
     const animate = () => {
+      if (!isVisible) return; // stop loop when not visible
       requestAnimationFrame(animate);
 
       if (isMoving && performance.now() - lastMoveTime > 50) {
@@ -154,13 +174,16 @@ const FluidCanvas = () => {
       renderer.render(simScene, camera);
 
       displayMaterial.uniforms.uFluid.value = currentRenderTarget.texture;
-
       renderer.setRenderTarget(null);
       renderer.render(scene, camera);
     };
 
     // Image loader
-    const loadImage = (url:string, type: string, textureSizeVector: THREE.Vector2) => {
+    const loadImage = (
+      url: string,
+      type: string,
+      textureSizeVector: THREE.Vector2
+    ) => {
       const img = new Image();
       img.onload = () => {
         const originalWidth = img.width;
@@ -200,27 +223,25 @@ const FluidCanvas = () => {
           displayMaterial.uniforms.uBottomTextureSize.value = textureSizeVector;
         }
       };
-
       img.src = url;
     };
 
     const topTextureSize = new THREE.Vector2(1, 1);
     const bottomTextureSize = new THREE.Vector2(1, 1);
-
-    
-    loadImage('/canvas1.jpg', "top", topTextureSize);
-    loadImage('/img2.jpg', "bottom", bottomTextureSize);
+    loadImage("/canvas1.jpg", "top", topTextureSize);
+    loadImage("/img2.jpg", "bottom", bottomTextureSize);
 
     animate();
 
     return () => {
+      observer.disconnect();
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("resize", onResize);
       renderer.dispose();
     };
   }, []);
 
-  return <canvas  ref={canvasRef}  />;
+  return <canvas ref={canvasRef} />;
 };
 
 export default FluidCanvas;
