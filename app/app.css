@@ -50,19 +50,37 @@
 
 html,
 body {
-  @apply bg-white dark:bg-gray-950 mx-auto ;
+  @apply bg-white dark:bg-gray-950;
   margin: 0;
   padding: 0;
+  width: 100%;
 
   @media (prefers-color-scheme: dark) {
     color-scheme: dark;
   }
 }
 
+/* Use border-box everywhere to avoid layout surprises */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Prevent horizontal scroll on small devices */
+html, body {
+  
+}
+
+/* Ensure media and canvases don't cause overflow */
+img, canvas, video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
 @layer components {
 
   .rootLayoutContainer {
-    @apply fixed flex justify-between p-4 sm:p-6 md:p-10 items-center bg-black/30 backdrop-blur-3xl w-screen top-0 h-16 sm:h-20 z-150 ;
+    @apply fixed left-0 right-0 w-full flex justify-between p-4 sm:p-6 md:p-10 items-center bg-black/30 backdrop-blur-3xl top-0 h-16 sm:h-20 z-150 ;
 
     .links {
       @apply hidden sm:flex gap-4 md:gap-10;

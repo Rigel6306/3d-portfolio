@@ -10,7 +10,7 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ setIsOpen }) => {
 
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
-                className="modelContainer flex justify-center  inset-0 left-0 fixed top-20 h-screen w-full z-50 backdrop-blur-lg overflow-hidden">
+                className="modelContainer flex justify-center fixed inset-x-0 top-20 max-w-full z-50 backdrop-blur-lg overflow-hidden">
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}

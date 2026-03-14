@@ -14,13 +14,28 @@ const FluidCanvas = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    // ensure canvas fills its parent without causing viewport overflow
+    canvas.style.display = 'block';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.position = 'absolute';
+    canvas.style.left = '0';
+    canvas.style.top = '0';
+
     const renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: true,
       precision: "highp",
     });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const setRendererSizeToCanvas = () => {
+      const width = Math.max(1, canvas.clientWidth);
+      const height = Math.max(1, canvas.clientHeight);
+      renderer.setSize(width, height, false);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    };
+
+    setRendererSizeToCanvas();
 
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -100,6 +115,13 @@ const FluidCanvas = () => {
       fragmentShader: displayFragmentShader,
     });
 
+    // set initial resolution from canvas size to avoid using full viewport width (100vw)
+    displayMaterial.uniforms.uResolution.value.set(
+      canvas.clientWidth,
+      canvas.clientHeight
+    );
+    displayMaterial.uniforms.uDpr.value = window.devicePixelRatio;
+
     const planeGeometry = new THREE.PlaneGeometry(2, 2);
     const displayMesh = new THREE.Mesh(planeGeometry, displayMaterial);
     scene.add(displayMesh);
@@ -126,10 +148,10 @@ const FluidCanvas = () => {
     };
 
     const onResize = () => {
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      setRendererSizeToCanvas();
       displayMaterial.uniforms.uResolution.value.set(
-        window.innerWidth,
-        window.innerHeight
+        canvas.clientWidth,
+        canvas.clientHeight
       );
       displayMaterial.uniforms.uDpr.value = window.devicePixelRatio;
     };

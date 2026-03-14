@@ -15,7 +15,7 @@ const Card = ({text,className,constraintRef, delay,y,img}:cardProps) => {
         <>
        { img?<motion.img
         src={img}
-        className={`h-12 sm:h-15 cursor-grab absolute ${className}`  }
+        className={`h-12 w-12 sm:h-12 sm:w-12 md:h-12 md:w-12 cursor-grab absolute ${className}`  }
          drag
             dragConstraints={constraintRef}
             dragElastic={0.1}

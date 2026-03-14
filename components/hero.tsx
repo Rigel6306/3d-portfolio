@@ -15,7 +15,7 @@ const Loading = ()=>{
 }
 const Hero = () => {
     return (
-        <section id="hero" className=" h-[100vh] sm:h-[100vh] overflow-x-hidden">
+        <section id="hero" className="relative h-[100vh] sm:h-[100vh] overflow-x-hidden">
                 {/* <div className="heroContainer h-screen">
                     <h1>Bridging Logic and Aesthetics. Fullstack in Action</h1>
 
