@@ -44,11 +44,11 @@ const cardOffset = 5
 const cardScaleStep = 0.075
   return (
     <motion.div
-      className={`absolute left-1/2  top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-3xl shadow-2xl overflow-hidden flex items-center justify-center will-change-transform`}
+      className={ `absolute left-1/2  top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-3xl shadow-1xl overflow-hidden flex items-center justify-center will-change-transform`}
       style={{
         backgroundColor: color,
-        width: "min(65vw, 1020px)",
-        height: "min(62vh, 540px)",
+        width: "min(95vw, 1020px)",
+        height: "min(52vh, 540px)",
         zIndex: total - index, // highest z-index = top card
         transformOrigin: "center bottom",
         perspective: "1400px", // enhances 3D tilt

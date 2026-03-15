@@ -71,7 +71,7 @@ html, body {
 }
 
 /* Ensure media and canvases don't cause overflow */
-img, canvas, video {
+ video {
   max-width: 100%;
   height: auto;
   display: block;

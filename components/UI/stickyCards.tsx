@@ -95,7 +95,7 @@ export default function StickyCards() {
     >
       {/* Sticky viewport container */}
       <div className="sticky top-0 h-screen w-full flex items-center justify-center perspective-[1400px]">
-        {pilelist.map((item, index) => (
+        {projectList.map((item, index) => (
           <PileCard
             key={item.name}
             color={item.color}
