@@ -5,9 +5,9 @@ const About = () => {
     const constraintRef = useRef<HTMLDivElement>(null);
     return (
 
-        <section id='about' className="p-3 mt-10 overflow-x-hidden flex flex-col items-center "  >
-            <h2 className="text-4xl font-semibold my-10">About Me</h2>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-6 md:auto-rows-[18rem]  md:w-[80%] xl:w-[80%]          
+        <section id='about' className="p-3 pb-10 mt-10 overflow-x-hidden flex flex-col items-center "  >
+            {/* <h2 className="text-4xl font-semibold my-10">About Me</h2> */}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-6 md:auto-rows-[15rem]  md:w-[80%] xl:w-[80%]          
             ">
                 {/* Grid item 1 */}
                 <div className="flex flex-col justify-end items-start  row-span-2 md:col-span-3 h-60 md:h-full relative overflow-hidden  hover:-translate-y-1  duration-200 grid-default-color ">

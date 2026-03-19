@@ -1,0 +1,25 @@
+.overlayHead{
+    font-size: 6rem;
+}
+.overlaySubHead{
+    font-size: 3rem;
+}
+.servicesSection{
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    
+}
+
+.parallaxPageHeading{
+    text-align: center;
+    font-size: 3.5rem;
+    margin-left: 20px;
+    font-weight: bolder;
+  
+     font-family: "Marmelad", sans-serif;
+    
+  }
+  

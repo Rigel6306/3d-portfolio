@@ -44,7 +44,7 @@ const cardOffset = 5
 const cardScaleStep = 0.075
   return (
     <motion.div
-      className={ `absolute left-1/2  top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-3xl shadow-1xl overflow-hidden flex items-center justify-center will-change-transform`}
+      className={ `absolute left-1/2 m-0 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-3xl shadow-1xl overflow-hidden will-change-transform`}
       style={{
         backgroundColor: color,
         width: "min(95vw, 1020px)",

@@ -6,7 +6,7 @@ import MyProjects from "components/MyProjects";
 import StickeyCards from "components/UI/stickyCards";
 
 import { ReactLenis } from 'lenis/react'
-
+import { TextParallaxContentContainer } from "components/UI/stickySlider";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -25,7 +25,8 @@ export default function Home() {
    
     <div className="home">
       <Hero />
-      <About />
+      {/* <About /> */}
+      <TextParallaxContentContainer/>
       {/* <MyProjects/> */}
       <StickeyCards />
     </div>

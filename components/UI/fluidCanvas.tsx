@@ -250,7 +250,7 @@ const FluidCanvas = () => {
 
     const topTextureSize = new THREE.Vector2(1, 1);
     const bottomTextureSize = new THREE.Vector2(1, 1);
-    loadImage("/canvas1.jpg", "top", topTextureSize);
+    loadImage("/laptop.jpg", "top", topTextureSize);
     loadImage("/img2.jpg", "bottom", bottomTextureSize);
 
     animate();

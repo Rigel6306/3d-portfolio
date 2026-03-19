@@ -5,13 +5,7 @@ import PileCard from "./pileCard";
 export default function StickyCards() {
   const sectionRef = useRef<HTMLDivElement>(null);
 
-  const pilelist = [
-    { color: "#3d2fa9", name: "Jello" },
-    { color: "#ff7722", name: "Mello" },
-    { color: "#ff3d33", name: "Hellow" },
-    { color: "#785f47", name: "Pillow" },
-    { color: "#2f9fa9", name: "Mellow" },
-  ];
+
 
   const projectList = [
     {
@@ -33,7 +27,7 @@ export default function StickyCards() {
     {
       color: "#ff3d33",
       name: "RedRooster Farm E-Commerce",
-      stack: ["React", "Node.js/Express,MySQL"],
+      stack: ["React", "Node.js/Express","MySQL"],
       description: "Full-stack food ordering platform with secure payment and order tracking."
 
     },
@@ -48,48 +42,41 @@ export default function StickyCards() {
       color: "#2f9fa9",
       name: "Developer Portfolio Website",
       stack: ["Next.js", "Three.js", "Framer Motion"],
-      desciption: "Showcased projects with 3D animations and interactive design."
+      description: "Showcased projects with 3D animations and interactive design."
     },
 
     {
       color: "#461c5a",
       name: "Mac Clone Showcase",
       stack: ["React", "Three.js", "GSAP"],
-      desciption: "Apple Mac product page clone with 3D and scroll animations."
+      description: "Apple Mac product page clone with 3D and scroll animations."
     },
-    {
-      color: "#6f7a24",
-      name: "Mac Clone Showcase",
-      stack: ["React", "Three.js", "GSAP"],
-      desciption: "Apple Mac product page clone with 3D and scroll animations."
-    },
+   
+ 
 
-     {
+    {
       color: "#261f30",
       name: "Smart House Management System",
       stack: ["React.js", "Node.js/Express", "MongoDB"],
-      desciption: "A Full-stack web system for real estate housing management."
-     },
+      description: "A Full-stack web system for real estate housing management."
+    },
 
-      {
+    {
       color: "#2d3536",
       name: "Defender Bypass ",
-      stack: ["C++,Metasploit"],
-      desciption: "Extracts Metasploit Reverse shell binary concatenated into a JPEG. Undetected Execution"
-     },
-
-
-
+      stack: ["C++", "Metasploit"],
+      description: "Extracts Metasploit Reverse shell binary concatenated into a JPEG. Undetected Execution"
+    },
 
   ]
 
 
   return (
-    <section
+    <section 
       ref={sectionRef}
-      className="relative bg-gradient-to-b from-yellow-300 h-[800vh] via-purple-700 to-purple-600"
+      className="  relative bg-linear-to-b from-green-300 h-[600vh]  via-purple-700 to-purple-600"
       style={{
-
+        //  height: `${projectList.length * 300}vh`
         // enough scroll space — adjust if too fast/slow
       }}
     >
@@ -100,13 +87,37 @@ export default function StickyCards() {
             key={item.name}
             color={item.color}
             index={index}
-            total={pilelist.length}
+            total={projectList.length}
             sectionRef={sectionRef} // ← pass the ref here
           >
-            <div className="w-full h-full p-10 md:p-16 flex items-center justify-center">
-              <h2 className="text-white text-5xl md:text-7xl font-bold tracking-tight drop-shadow-2xl">
-                {item.name}
-              </h2>
+            <div className="w-full h-full sm:p-2 flex flex-col">
+              <div className="card-header  flex flex-col sm:flex-row   flex-1">
+                <div className="project-name items-center  flex flex-1 pl-5 sm:p-5 ">
+                  <h2 className="text-white text-[13px] md:text-2xl font-semibold tracking-tight drop-shadow-2xl">
+                    {item.name}
+                  </h2>
+                </div>
+
+                <div className="stack-list  flex pl-3 sm:p-5 sm:flex-4  max-w-full sm:items-center sm:justify-end">
+
+                  {
+                    item.stack.map((item, index) => (
+                      <p key={index} className="text-[6px] p-2 font-semibold font-sans sm:text-lg">{item} | </p>
+                    ))
+                  }
+                </div>
+              </div>
+
+              <div className="flex-4  flex flex-col sm:flex-row ">
+                    <div className="card-description sm:flex-2 p-2 text-[10px] m-2 sm:text-lg ">
+                      <p>{item.description}</p>
+                    </div>
+
+                    <div className="img-contaienr flex-4 bg-aqua rounded-2xl h-full p-4 w-full">
+
+                    </div>
+              </div>
+
             </div>
           </PileCard>
         ))}
