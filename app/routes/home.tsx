@@ -28,7 +28,7 @@ export default function Home() {
       {/* <About /> */}
       <TextParallaxContentContainer/>
       {/* <MyProjects/> */}
-      <StickeyCards />
+      {/* <StickeyCards /> */}
     </div>
        </ReactLenis>
   );

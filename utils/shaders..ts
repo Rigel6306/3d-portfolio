@@ -98,12 +98,12 @@ const displayFragmentShader = `
     vec4 bottomColor = texture2D(uBottomTexture, bottomUV);
 
     // ─── Smoother reveal with gentle organic edge ───
-    float baseReveal = smoothstep(0.0, 0.62, fluid);
+    float baseReveal = smoothstep(0.10, 0.62, fluid);
     float edgeNoise  = fbm(vUv * 3.2 + uTime * 0.08) * 0.12;
     float reveal     = smoothstep(0.0, 1.0, baseReveal + edgeNoise - 0.08);
 
     // ─── Core + trail energy (softer, more glassy/ethereal) ───
-    float distToCenter = length(vUv - 0.5);
+    float distToCenter = length(vUv - 1.5);
     float pulse      = 5.0 + sin(uTime * 2.4 + distToCenter * 14.0) * 0.07; // subtle breathing
 
     float core       = smoothstep(0.24, 0.06, fluid) * pulse * 1.35;
@@ -111,11 +111,11 @@ const displayFragmentShader = `
 
     // Light organic trail distortion (less aggressive than original)
     vec2 trailFlow   = vec2(
-      sin(fluid * 36.0 + uTime * 0.6 + vUv.y * 4.0),
-      cos(fluid * 5.0 - uTime * 0.5 + vUv.x * 5.0)
+      sin(fluid * 136.0 + uTime * 0.6 + vUv.y * 4.0),
+      cos(fluid * 15.0 - uTime * 0.5 + vUv.x * 5.0)
     ) * 0.018 * trail;
 
-    float subtleNoise = fbm(vUv * 4.5 + trailFlow + uTime * 0.1) * trail * 1.45;
+    float subtleNoise = fbm(vUv * 1.5 + trailFlow + uTime * 0.1) * trail * 1.45;
 
     float energy     = core * 1.3 + trail * 0.85 + subtleNoise * 0.5;
 

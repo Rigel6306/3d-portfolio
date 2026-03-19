@@ -29,7 +29,7 @@ export const TextParallaxContentContainer = () => {
             subHeading={"I do witchery in"}
             heading={"Web and Mobile Development"}
         >
-            <div className="servicesSection  bg-linear-to-b from-green-300 h-[600vh]  via-purple-700 to-purple-600">
+            <div className="servicesSection  bg-linear-to-b from-white-300 h-[600vh]  via-gray-600 to-gray-100">
               
                 <StickyCards />
                 
@@ -39,8 +39,8 @@ export const TextParallaxContentContainer = () => {
                                                             
         <TextParallaxContent
             img={'/parallax3.jpg'}
-            subHeading={"join with us"}
-            heading={"www.codementorian.com"}
+            subHeading={"Hire Me"}
+            heading={"charitha1@live.com"}
         >             
             <p>Footer Comming Soon</p>
         </TextParallaxContent>
@@ -53,7 +53,7 @@ export const TextParallaxContentContainer = () => {
 const TextParallaxContent = ({ img, subHeading, heading, children }) => {
 
     return (
-        <div className="mt-10" style={{
+        <div className="mt-10 w-full max-w-full overflow-clip" style={{
             
            
             
@@ -67,7 +67,7 @@ const TextParallaxContent = ({ img, subHeading, heading, children }) => {
     )
 }
 
-const StickyImage = ({ img }) => {
+const StickyImage = ({ img }:any) => {
     const refTarget = useRef(null)
     const { scrollYProgress } = useScroll({
         target: refTarget,
@@ -113,13 +113,11 @@ const TextOverlay = ({ heading, subHeading }) => {
     return (
         <motion.div
             ref={refTarget}
-            style={{ y, opacity,
-               
-             }}
-            className="absolute left-0 top-50 flex h-screen w-full flex-col items-center justify-center text-white"
+            style={{ y, opacity }}
+            className="absolute left-0 top-1/2 -translate-y-1/2 flex w-full flex-col items-center justify-center"
         >
-            <div className="overlaySubHead mb-2 text-center  text-white">{subHeading}</div>
-            <div className="overlayHead text-center text-4xl font-bold text-white">{heading}</div>
+            <div className="overlaySubHead mb-2 text-center text-sm sm:text-[3rem]  ">{subHeading}</div>
+            <div className="overlayHead text-center text-3xl sm:text-[6rem] font-bold ">{heading}</div>
         </motion.div>
     )
 }

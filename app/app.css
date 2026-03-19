@@ -50,7 +50,7 @@
 
 html,
 body {
-  @apply bg-white dark:bg-gray-950;
+  @apply bg-white ;
   margin: 0;
   padding: 0;
   width: 100%;
@@ -80,7 +80,7 @@ html, body {
 @layer components {
 
   .rootLayoutContainer {
-    @apply fixed left-0 right-0 w-full flex justify-between p-4 sm:p-6 md:p-10 items-center bg-black/30 backdrop-blur-3xl top-0 h-16 sm:h-20 z-150 ;
+    @apply fixed left-0 right-0 w-full flex justify-between p-4 sm:p-6 md:p-10 items-center bg-white/10 backdrop-blur-md top-0 h-16 sm:h-20 z-150 ;
 
     .links {
       @apply hidden sm:flex gap-4 md:gap-10;

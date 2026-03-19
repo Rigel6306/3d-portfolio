@@ -74,7 +74,7 @@ export default function StickyCards() {
   return (
     <section 
       ref={sectionRef}
-      className="  relative bg-linear-to-b from-green-300 h-[600vh]  via-purple-700 to-purple-600"
+      className="  relative bg-linear-to-b  h-[600vh] "
       style={{
         //  height: `${projectList.length * 300}vh`
         // enough scroll space — adjust if too fast/slow
