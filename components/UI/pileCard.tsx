@@ -37,7 +37,9 @@ export default function PileCard({
 
   const rotateX = useTransform(scrollYProgress, [start, end], [0, 68]); // tilt forward
 
-  const scale = useTransform(scrollYProgress, [start, end], [1, 0.36]); // shrink a bit
+  const scale = useTransform(scrollYProgress, [start, end], [1, 0.1]); // shrink a bit
+  const scaleTop = useTransform(scrollYProgress,[start,end],[20,3001])
+
 
   const x = useTransform(scrollYProgress, [start, end], [0, 50]); // optional side peel
 const cardOffset = 5
@@ -48,12 +50,12 @@ const cardScaleStep = 0.075
       style={{
         backgroundColor: color,
         width: "min(95vw, 1020px)",
-        height: "min(52vh, 540px)",
+        height: "min(72vh, 540px)",
         zIndex: total - index, // highest z-index = top card
         transformOrigin: "center bottom",
         perspective: "1400px", // enhances 3D tilt
+       
         
-      
         y,
         x,
         rotateX,

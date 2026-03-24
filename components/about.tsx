@@ -38,7 +38,16 @@ const About = () => {
                     <Card img="Next.js.png" constraintRef={constraintRef} delay={0.4} y={[0, -4, 0]} className={"-rotate-4 bottom-35 left-30 h-10! "} />
                 </div>
                 {/* Grid item 3 */}
-                <div className="flex  items-start row-span-1 md:col-span-3 h-60 md:h-full relative overflow-hidden hover-translate-y-1 duration-200 grid-default-color2 ">
+                <div className="flex flex-col items-center justify-center row-span-1 md:col-span-1 h-60 md:h-full relative overflow-hidden hover-translate-y-1 duration-200 grid-default-color2 ">
+                    <div className="subText z-10">
+                        <p className="text-2xl">My Resume</p>
+                        </div>
+                    
+                         <h1>Donwload</h1>
+                 
+                   
+                </div>
+                 <div className="flex  items-start row-span-1 md:col-span-2 h-60 md:h-full relative overflow-hidden hover-translate-y-1 duration-200 grid-default-color2 ">
                     <div className="subText z-10">
                         <p className="text-2xl">I'm Located in Mars</p>
                         <p>Open to work in anywhere in the globe</p>

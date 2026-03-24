@@ -6,6 +6,7 @@ import About from "components/about"
 import { motion, useScroll, useTransform } from 'framer-motion'
 import StickyCards from "./stickyCards"
 import '../../app/styles/parallax.css'
+import CodeEditor from "components/CodeEditor"
 
 export const TextParallaxContentContainer = () => {
 
@@ -42,7 +43,7 @@ export const TextParallaxContentContainer = () => {
             subHeading={"Hire Me"}
             heading={"charitha1@live.com"}
         >             
-            <p>Footer Comming Soon</p>
+            <CodeEditor/>
         </TextParallaxContent>
     </div>),[]
 )

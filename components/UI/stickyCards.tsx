@@ -13,14 +13,14 @@ export default function StickyCards() {
       name: "Fitness Gym Management System",
       stack: ["React Native", "React 19", "Node.js/Express", "Firestore/Firebase"],
       description: "a cross-platform app for gym members that manages workouts, payments, notifications, analytics etc with an admin panel and secure REST API for user and payment management",
-
+      img: '/project-images/fitness.png'
     },
     {
       color: "#ff7722",
       name: "AI Trip Planner",
       stack: ["Next.js", "TypeScript", "AI SDK", "Firebase"],
       description: "Al-powered trip planning platform with Google Authentication, intelligent itinerary management and real-time updates.",
-
+      img: '/project-images/trip-planner.png'
 
 
     },
@@ -35,21 +35,24 @@ export default function StickyCards() {
       color: "#785f47",
       name: "FuturityLK Social Platform",
       stack: ["React Native", "React 19", "Node.js/Express", "Firestore/Firebase"],
-      description: " A cross-platform app for donations, awareness posts, and emergency care services."
+      description: " A cross-platform app for donations, awareness posts, and emergency care services.",
+      img:'/project-images/futurity.png'
 
     },
     {
       color: "#2f9fa9",
       name: "Developer Portfolio Website",
       stack: ["Next.js", "Three.js", "Framer Motion"],
-      description: "Showcased projects with 3D animations and interactive design."
+      description: "Showcased projects with 3D animations and interactive design.",
+      img:'/project-images/company.png'
     },
 
     {
       color: "#461c5a",
       name: "Mac Clone Showcase",
       stack: ["React", "Three.js", "GSAP"],
-      description: "Apple Mac product page clone with 3D and scroll animations."
+      description: "Apple Mac product page clone with 3D and scroll animations.",
+      img:'/project-images/macClone.png'
     },
    
  
@@ -65,7 +68,8 @@ export default function StickyCards() {
       color: "#2d3536",
       name: "Defender Bypass ",
       stack: ["C++", "Metasploit"],
-      description: "Extracts Metasploit Reverse shell binary concatenated into a JPEG. Undetected Execution"
+      description: "Extracts Metasploit Reverse shell binary concatenated into a JPEG. Undetected Execution",
+      img:'/project-images/rigelGenerator.png'
     },
 
   ]
@@ -81,17 +85,17 @@ export default function StickyCards() {
       }}
     >
       {/* Sticky viewport container */}
-      <div className="sticky top-0 h-screen w-full flex items-center justify-center perspective-[1400px]">
+      <div className="sticky top-0 h-screen w-full flex   perspective-[1400px]">
         {projectList.map((item, index) => (
           <PileCard
             key={item.name}
             color={item.color}
             index={index}
             total={projectList.length}
-            sectionRef={sectionRef} // ← pass the ref here
+            sectionRef={sectionRef} 
           >
             <div className="w-full h-full sm:p-2 flex flex-col">
-              <div className="card-header  flex flex-col sm:flex-row   flex-1">
+              <div className="card-header h-[30%] flex flex-col sm:flex-row   ">
                 <div className="project-name items-center  flex flex-1 pl-5 sm:p-5 ">
                   <h2 className="text-white text-[13px] md:text-2xl font-semibold tracking-tight drop-shadow-2xl">
                     {item.name}
@@ -108,25 +112,31 @@ export default function StickyCards() {
                 </div>
               </div>
 
-              <div className="flex-4  flex flex-col sm:flex-row ">
-                    <div className="card-description sm:flex-2 p-2 text-[10px] m-2 sm:text-lg ">
-                      <p>{item.description}</p>
-                    </div>
+          <div className="flex flex-col justify-center h-full overflow-hidden items sm:flex-row flex-1 m-3 gap-4 mt-2">
+            {/* Description */}
+            <div className="card-description sm:w-[30%] p-2 text-xs sm:text-sm md:text-lg">
+              <p>{item.description}</p>
+            </div>
 
-                    <div className="img-contaienr flex-4 bg-aqua rounded-2xl h-full p-4 w-full">
+            {/* Image */}
+            <div className="img-container w-full   rounded-2xl overflow-hidden ">
+              {item.img && (
+                <img
+                  src={item.img}
+                  className="w-full h-full object-fit rounded-2xl"
+                  alt={item.name}
+                />
+              )}
+            </div>
+          </div>
 
-                    </div>
-              </div>
 
             </div>
           </PileCard>
         ))}
       </div>
 
-      {/* Optional footer / continuation so you can keep scrolling */}
-      <div className="relative z-10 h-[80vh] flex items-center justify-center text-white text-4xl font-light">
-
-      </div>
+     
     </section>
   );
 }

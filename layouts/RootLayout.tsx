@@ -23,7 +23,7 @@ const RootLayout = () => {
         <>
 
 
-            <div className="rootLayoutContainer w-full ">
+            <div className="rootLayoutContainer w-full  ">
 
                 <div className="logo pb-2 sm:pb-5 text-xs sm:text-base">
                     <h1>Logo</h1>
@@ -46,7 +46,7 @@ const RootLayout = () => {
                 style={{maxHeight:'100vh'}}
                 transition={{duration:0.3}}
                  exit={{ opacity: 0 }}
-            className="block overflow-y-auto text-center sm:hidden pt-20 pb-5 bg-white backdrop-blur-md">
+            className="block overflow-y-auto text-center sm:hidden pt-20 pb-5 bg-gray-500  ">
                 <div className="nav pb-5">
 
                     <Nav />
