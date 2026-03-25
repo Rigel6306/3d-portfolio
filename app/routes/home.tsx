@@ -1,9 +1,7 @@
-import About from "components/about";
+
 import type { Route } from "./+types/home";
-import { useEffect } from "react";
 import Hero from "components/hero";
-import MyProjects from "components/MyProjects";
-import StickeyCards from "components/UI/stickyCards";
+
 
 import { ReactLenis } from 'lenis/react'
 import { TextParallaxContentContainer } from "components/UI/stickySlider";

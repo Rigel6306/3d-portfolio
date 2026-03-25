@@ -5,12 +5,12 @@ const About = () => {
     const constraintRef = useRef<HTMLDivElement>(null);
     return (
 
-        <section id='about' className="p-3 pb-10 mt-10 overflow-x-hidden flex flex-col items-center "  >
+        <section id='about' className="sticky md:top-20  p-3 pb-10 mt-10 overflow-x-hidden  flex flex-col items-center "  >
             {/* <h2 className="text-4xl font-semibold my-10">About Me</h2> */}
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-6 md:auto-rows-[15rem]  md:w-[80%] xl:w-[80%]          
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-6 h-full md:h-[calc(100dvh-100px)]  2xl:scale-100  md:w-full xl:w-[75%]          
             ">
                 {/* Grid item 1 */}
-                <div className="flex flex-col justify-end items-start  row-span-2 md:col-span-3 h-60 md:h-full relative overflow-hidden  hover:-translate-y-1  duration-200 grid-default-color ">
+                <div className="flex flex-col justify-end items-start h-60 md:h-full row-span-2 md:col-span-3   relative overflow-hidden  hover:-translate-y-1  duration-200 grid-default-color ">
                     <div className="imgContainer absolute h-full w-full  top-0 left-0">
                         <img className=" h-full w-full object-cover" src="laptop2.jpg" alt="" />
                     </div>

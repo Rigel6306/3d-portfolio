@@ -21,7 +21,10 @@ export const TextParallaxContentContainer = () => {
             >       
                 <div className="aboutUsSection">
                     <h1 className="parallaxPageHeading text-white">About Me</h1>
-                   <About/>
+                    <div className="aboutContainer h-[200vh]">
+                            <About/>
+                    </div>
+                   
                 </div>   
         </TextParallaxContent >
 

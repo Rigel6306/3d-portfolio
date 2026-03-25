@@ -39,7 +39,7 @@ const Card = ({text,className,constraintRef, delay,y,img}:cardProps) => {
                 scale: [1, 1.02, 0.98, 1]
             }}
         transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" ,delay:delay}}
-         className={`cardContainer cursor-grab font-semibold text-gray-50 absolute w-32 sm:w-40 flex items-center justify-center bg-linear-to-r from-gray-500 to-black-600 p-2 rounded-4xl text-xs sm:text-sm ${className}`}>
+         className={`cardContainer cursor-grab font-semibold text-gray-50 absolute w-32 sm:w-40 flex items-center justify-center bg-linear-to-r  p-2 rounded-4xl text-xs sm:text-sm ${className}`}>
             <p style={{willChange:"transform"}} >{text}</p>
         </motion.div>}
         </>
