@@ -24,6 +24,7 @@
     "react-icons": "^5.6.0",
     "react-router": "^7.9.2",
     "tailwind-merge": "^3.4.0",
+    "tech-stack-icons": "^3.7.1",
     "three": "^0.181.0"
   },
   "devDependencies": {
@@ -32,6 +33,7 @@
     "@types/node": "^22",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
+    "baseline-browser-mapping": "^2.11.15",
     "tailwindcss": "^4.1.13",
     "typescript": "^5.9.2",
     "vite": "^7.1.7",

@@ -7,27 +7,14 @@ type cardProps ={
     constraintRef:RefObject<HTMLDivElement|null>,
     delay?:number,
     y?:[number,number,number],
-    img?:string
+    img?:string,
+    children?:React.ReactNode
 }
-const Card = ({text,className,constraintRef, delay,y,img}:cardProps) => {
+const Card = ({text,className,constraintRef, delay,y,img,children}:cardProps) => {
 
     return (
         <>
-       { img?<motion.img
-        src={img}
-        className={`h-12 w-12 sm:h-12 sm:w-12 md:h-12 md:w-12 cursor-grab absolute ${className}`  }
-         drag
-            dragConstraints={constraintRef}
-            dragElastic={0.1}
-            whileDrag={{ scale: 1.1, rotate: 2,  }}
-            animate={{
-                y: y,
-                rotate: [0, 2, -2, 0],
-                scale: [1, 1.02, 0.98, 1]
-            }}
-        transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" ,delay:delay}}
-        />
-        :
+      
         <motion.div
             drag
             dragConstraints={constraintRef}
@@ -39,9 +26,9 @@ const Card = ({text,className,constraintRef, delay,y,img}:cardProps) => {
                 scale: [1, 1.02, 0.98, 1]
             }}
         transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" ,delay:delay}}
-         className={`cardContainer cursor-grab font-semibold text-gray-50 absolute w-32 sm:w-40 flex items-center justify-center bg-linear-to-r  p-2 rounded-4xl text-xs sm:text-sm ${className}`}>
-            <p style={{willChange:"transform"}} >{text}</p>
-        </motion.div>}
+         className={`h-12 w-12 sm:h-12 sm:w-12 md:h-12 md:w-12 cursor-grab bg-white/80 p-2 rounded-2xl absolute ${className}`}>
+            {children}
+        </motion.div>
         </>
      );
 }

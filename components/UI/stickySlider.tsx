@@ -1,15 +1,16 @@
 
 
 const IMG_PADDING = 42
-import { useRef,useMemo, useState } from "react"
+import React, { useRef,useMemo, useState } from "react"
 import About from "components/about"
 import { motion, useScroll, useTransform } from 'framer-motion'
 import StickyCards from "./stickyCards"
 import '../../app/styles/parallax.css'
 import CodeEditor from "components/CodeEditor"
-
+ 
 export const TextParallaxContentContainer = () => {
 
+    const targerRef = useRef(null)
     const parallexMemoized  = useMemo(()=>(
     
     <div > 
@@ -21,8 +22,8 @@ export const TextParallaxContentContainer = () => {
             >       
                 <div className="aboutUsSection">
                     <h1 className="parallaxPageHeading text-white">About Me</h1>
-                    <div className="aboutContainer h-[200vh]">
-                            <About/>
+                    <div className="aboutContainer h-[200vh]" ref={targerRef} >
+                            <About targetRef={targerRef}/>
                     </div>
                    
                 </div>   
@@ -54,7 +55,14 @@ export const TextParallaxContentContainer = () => {
 
 }
 
-const TextParallaxContent = ({ img, subHeading, heading, children }) => {
+interface TextParalaxPropsType {
+    img:string,
+    subHeading:string,
+    heading:string,
+    children:React.ReactNode
+}
+
+const TextParallaxContent = ({ img, subHeading, heading, children }:TextParalaxPropsType) => {
 
     return (
         <div className="mt-10 w-full max-w-full overflow-clip" style={{
