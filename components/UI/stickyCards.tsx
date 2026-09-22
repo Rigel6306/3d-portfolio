@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import PileCard from "./PileCard";
+import PileCard from "./pileCard";
 
 export default function StickyCards() {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -153,7 +153,7 @@ export default function StickyCards() {
                         rel="noreferrer"
                         className="text-xs md:text-sm bg-white text-black font-semibold px-3 py-1.5 rounded-lg hover:bg-white/90 transition-colors"
                       >
-                        Live Demo ↗
+                        Live Demo 
                       </a>
                     )}
                   </div>

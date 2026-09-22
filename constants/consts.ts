@@ -1,6 +1,3 @@
-import { details } from "motion/react-client"
-
-
 export const layoutLinks = [
     {
         name: "Home",

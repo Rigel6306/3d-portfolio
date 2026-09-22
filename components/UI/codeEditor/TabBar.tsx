@@ -1,5 +1,17 @@
+type TabFile = {
+  id: number;
+  title: string;
+  type: "widget" | "text";
+  widget?: "puzzle" | "color" | "mood" | "terminal";
+  content?: string;
+};
 
-const TabBar = ({tabs,activeTab,setActiveTab,closeTab}) => {
+const TabBar = ({tabs,activeTab,setActiveTab,closeTab}:{
+    tabs: TabFile[];
+    activeTab: number | null;
+    setActiveTab: React.Dispatch<React.SetStateAction<number | null>>;
+    closeTab: (id: number) => void;
+}) => {
 
     return ( 
 

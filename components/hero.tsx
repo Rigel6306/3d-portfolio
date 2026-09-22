@@ -1,18 +1,6 @@
 
-import { Canvas } from "@react-three/fiber";
-import ComputerSetup from './three/models/Gaming_setup.js'
-import { OrbitControls } from "@react-three/drei";
-import Lighting from "./three/Lighting.js";
-import { Suspense } from "react";
-import { Html,useProgress } from "@react-three/drei";
 import HeroText from "./UI/HeroText.js";
-import ParalaxBackground from "./UI/paralax.js";
-
 import FluidCanvas from "./UI/fluidCanvas.js";
-const Loading = ()=>{
-  const { progress } = useProgress();
-  return <Html center style={{width:200}}>{`${progress.toFixed(0)}% loading`}</Html>;
-}
 const Hero = () => {
     return (
         <section id="hero" className="relative h-[100vh] sm:h-[100vh] overflow-x-hidden">

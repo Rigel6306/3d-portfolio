@@ -1,20 +1,32 @@
 import { useEffect, useState } from "react";
 
+type SearchFile = {
+    id: number;
+    title: string;
+    type: "widget" | "text";
+    widget?: "puzzle" | "color" | "mood" | "terminal";
+    content?: string;
+};
 
-const SearchModal = ({ isModalOpen, setIsModalOpen, files, openFile }) => {
+const SearchModal = ({ isModalOpen, setIsModalOpen, files, openFile }: {
+    isModalOpen: boolean;
+    setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    files: SearchFile[];
+    openFile: (file: SearchFile) => void;
+}) => {
 
     useEffect(() => {
         setFilterdFiles([...files])
-    }, [])
-    const [filterdFiles, setFilterdFiles] = useState([])
-    const searchFile = (value) => {
+    }, [files])
+    const [filterdFiles, setFilterdFiles] = useState<SearchFile[]>([])
+    const searchFile = (value: string) => {
         const results = files.filter((file) =>
             file.title.toLowerCase().includes(value.toLowerCase())
         );
         setFilterdFiles(results);
     }
 
-    const handleFilePress = (file)=>{
+    const handleFilePress = (file: SearchFile)=>{
         openFile(file)
         setIsModalOpen(false)
     }

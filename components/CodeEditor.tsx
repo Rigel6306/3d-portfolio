@@ -7,14 +7,19 @@ import {
   LuGitMerge,
   LuSearch,
   LuSettings,
-  LuX,
   LuTerminal,
   LuPlay,
-  LuRefreshCw,
   LuCopy,
-  LuCheck,
 } from "react-icons/lu";
 import SearchModal from "./UI/codeEditor/searchModal";
+
+type EditorFile = {
+  id: number;
+  title: string;
+  type: "widget" | "text";
+  widget?: "puzzle" | "color" | "mood" | "terminal";
+  content?: string;
+};
 
 // ----------------------------------------------------------------------
 // Interactive Widgets (Engaging content)
@@ -162,9 +167,9 @@ const MiniTerminal = () => {
     "Welcome to the Dev Terminal v1.0",
     "Type 'help' to see available commands.",
   ]);
-  const inputRef = useRef(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleCommand = (e) => {
+  const handleCommand = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && command.trim()) {
       const cmd = command.trim().toLowerCase();
       let response = "";
@@ -233,7 +238,7 @@ const MiniTerminal = () => {
 
 const CodeEditor = () => {
   // New engaging file set — different from about/projects/techstack
-  const files = [
+  const files: EditorFile[] = [
     {
       id: 1,
       title: "🎮 Playground.jsx",
@@ -296,19 +301,19 @@ Try the interactive widgets on the left — each one sparks a different part of 
     },
   ];
 
-  const [tabs, setTabs] = useState([]);
+  const [tabs, setTabs] = useState<EditorFile[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState(null);
+  const [activeTab, setActiveTab] = useState<number | null>(null);
 
   // open file (adds to tabs if not already open)
-  const openFile = (file) => {
+  const openFile = (file: EditorFile) => {
     if (!tabs.find((tab) => tab.id === file.id)) {
       setTabs((prev) => [...prev, file]);
     }
     setActiveTab(file.id);
   };
 
-  const closeTab = (id) => {
+  const closeTab = (id: number) => {
     setTabs((prev) => prev.filter((tab) => tab.id !== id));
     if (activeTab === id && tabs.length > 1) {
       const remaining = tabs.filter((tab) => tab.id !== id);
@@ -319,7 +324,7 @@ Try the interactive widgets on the left — each one sparks a different part of 
   };
 
   // Render content based on file type (widget or text)
-  const renderContent = (file) => {
+  const renderContent = (file: EditorFile | undefined) => {
     if (!file) return <div className="text-gray-500">Select a file to preview</div>;
 
     if (file.type === "widget") {

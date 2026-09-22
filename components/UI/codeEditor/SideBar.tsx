@@ -1,5 +1,13 @@
 
-const SideBar = ({ files, openFile }) => {
+type SideBarFile = {
+  id: number;
+  title: string;
+  type: "widget" | "text";
+  widget?: "puzzle" | "color" | "mood" | "terminal";
+  content?: string;
+};
+
+const SideBar = ({ files, openFile }: { files: SideBarFile[]; openFile: (file: SideBarFile) => void }) => {
   return (
     <div className="w-48  bg-[#1a162a] p-2 border-r border-gray-700">
       <h2 className="text-sm text-gray-400 mb-2">EXPLORER</h2>

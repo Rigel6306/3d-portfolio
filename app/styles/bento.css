@@ -1,0 +1,138 @@
+.bento-grid {
+  /* Monochrome palette. The two "light" cards (location, focus) and the
+     four "dark" cards (intro, toolkit, resume, contact) now share one
+     consistent black/white/gray system instead of blue and peach tints. */
+  --bento-ink: #0a0a0a;
+  --bento-muted: #6b6b6b;
+  --bento-paper: #f7f5ef;
+  --bento-surface: #eeeeec;   /* light card background */
+  --bento-dark: #0a0a0a;      /* dark card background */
+  --bento-label-on-light: rgba(10, 10, 10, 0.55);
+  --bento-label-on-dark: rgba(255, 255, 255, 0.6);
+
+  width: min(100%, 1180px);
+  margin-inline: auto;
+  align-content: stretch;
+}
+
+.bento-card {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 1.25rem;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 200ms ease, border-color 200ms ease;
+}
+
+.bento-card:hover {
+  border-color: rgba(0, 0, 0, 0.24);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.14);
+}
+
+.bento-intro {
+  background: var(--bento-dark);
+}
+
+.bento-intro::after {
+  position: absolute;
+  inset: 42% 0 0;
+  z-index: 1;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.92));
+  content: "";
+}
+
+.bento-intro .imgContainer {
+  opacity: 0.7;
+  /* grayscale, not just desaturated, to match the B&W theme */
+  filter: grayscale(1) contrast(1.1);
+}
+
+.bento-intro > p {
+  max-width: 32rem;
+}
+
+.bento-toolkit {
+  background: var(--bento-dark);
+}
+
+.bento-toolkit .bento-label {
+  color: var(--bento-label-on-dark);
+}
+
+.bento-toolkit .bento-label + p {
+  margin-top: 0.4rem;
+  color: #fff;
+}
+
+/* Responsive icon sizing: scales smoothly between these bounds instead of
+   jumping at fixed breakpoints (or worse, staying identical at every one). */
+.toolkit-icon {
+  width: clamp(2.25rem, 6vw, 3.25rem);
+  height: clamp(2.25rem, 6vw, 3.25rem);
+}
+
+.toolkit-icon svg,
+.toolkit-icon img {
+  width: 100%;
+  height: 100%;
+}
+
+.bento-resume {
+  background: var(--bento-dark);
+}
+
+.bento-location {
+  background: var(--bento-surface);
+  color: var(--bento-ink);
+}
+
+.bento-focus {
+  background: var(--bento-surface);
+  color: var(--bento-ink);
+}
+
+.bento-contact {
+  background: var(--bento-dark);
+}
+
+/* The old contact-card label used text-[var(--mint)], and --bento-mint had
+   become black — black text on the card's black background, invisible.
+   .bento-label now defaults to a light-bg color and dark cards opt into
+   the light-on-dark variant explicitly. */
+.bento-contact .bento-label {
+  color: var(--bento-label-on-dark);
+}
+
+.bento-label {
+  color: var(--bento-label-on-light);
+  font: 500 0.68rem/1.2 "DM Mono", monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.bento-link {
+  text-underline-offset: 0.25rem;
+  transition: opacity 180ms ease;
+}
+
+.bento-link:hover {
+  opacity: 0.72;
+}
+
+@media (max-width: 767px) {
+  .bento-grid {
+    width: 100%;
+  }
+
+  .bento-card {
+    min-height: 14rem;
+  }
+
+  .bento-intro {
+    min-height: 22rem;
+  }
+}
+
+.bento-location p,
+.bento-focus h2,
+.bento-focus > p {
+  color: var(--bento-ink);
+}

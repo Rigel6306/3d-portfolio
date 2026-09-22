@@ -1,57 +1,50 @@
 
 
 const IMG_PADDING = 42
-import React, { useRef,useMemo, useState } from "react"
+import { useRef } from "react"
 import About from "components/about"
 import { motion, useScroll, useTransform } from 'framer-motion'
 import StickyCards from "./stickyCards"
 import '../../app/styles/parallax.css'
-import CodeEditor from "components/CodeEditor"
  
 export const TextParallaxContentContainer = () => {
 
-    const targerRef = useRef(null)
-    const parallexMemoized  = useMemo(()=>(
-    
-    <div > 
+    const targetRef = useRef<HTMLDivElement | null>(null)
+    const parallaxContent = (
+    <div className="bg-linear-to-b from-[#060606fe] via-[#5656a0c7] to-[#0000]">
             <TextParallaxContent
-            
                 img={'/parallax1.jpg'}
                 subHeading={"Hello there, delightful essence"}
                 heading={"Welcome!"}
-            >       
+            >
                 <div className="aboutUsSection">
                     <h1 className="parallaxPageHeading text-white">About Me</h1>
-                    <div className="aboutContainer h-[200vh]" ref={targerRef} >
-                            <About targetRef={targerRef}/>
+                    <div className="aboutContainer h-[200vh]" ref={targetRef}>
+                            <About />
                     </div>
-                   
-                </div>   
-        </TextParallaxContent >
+                </div>
+        </TextParallaxContent>
 
         <TextParallaxContent
             img={'/parallax2.jpg'}
             subHeading={"I do witchery in"}
             heading={"Web and Mobile Development"}
         >
-            <div className="servicesSection  bg-linear-to-b from-white-300 h-[600vh]  via-gray-600 to-gray-100">
-              
+            <div className="servicesSection   h-[600vh]  ">
                 <StickyCards />
-                
-               
             </div>
-        </TextParallaxContent> 
-                                                            
+        </TextParallaxContent>
+
         <TextParallaxContent
             img={'/parallax3.jpg'}
             subHeading={"Hire Me"}
             heading={"charitha1@live.com"}
-        >             
-            <CodeEditor/>
+        >
+            <div />
         </TextParallaxContent>
-    </div>),[]
-)
-    return parallexMemoized
+    </div>
+    )
+    return parallaxContent
 
 }
 
@@ -59,7 +52,7 @@ interface TextParalaxPropsType {
     img:string,
     subHeading:string,
     heading:string,
-    children:React.ReactNode
+    children?:React.ReactNode
 }
 
 const TextParallaxContent = ({ img, subHeading, heading, children }:TextParalaxPropsType) => {
@@ -79,8 +72,8 @@ const TextParallaxContent = ({ img, subHeading, heading, children }:TextParalaxP
     )
 }
 
-const StickyImage = ({ img }:any) => {
-    const refTarget = useRef(null)
+const StickyImage = ({ img }: { img: string }) => {
+    const refTarget = useRef<HTMLDivElement | null>(null)
     const { scrollYProgress } = useScroll({
         target: refTarget,
         offset: ["end end", "end start"]
@@ -113,9 +106,9 @@ const StickyImage = ({ img }:any) => {
     )
 }
 
-const TextOverlay = ({ heading, subHeading }) => {
+const TextOverlay = ({ heading, subHeading }: { heading: string; subHeading: string }) => {
 
-    const refTarget = useRef(null)
+    const refTarget = useRef<HTMLDivElement | null>(null)
     const { scrollYProgress } = useScroll({
         target: refTarget,
         offset: ["start end", "end start"]

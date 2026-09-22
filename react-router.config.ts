@@ -1,7 +1,7 @@
 import type { Config } from "@react-router/dev/config";
 
 export default {
-  // Config options...
-  // Server-side render by default, to enable SPA mode set this to `false`
-  ssr: true,
+  // Keep the app as a client-rendered SPA because the portfolio relies on
+  // browser-only animation and canvas logic that should run after hydration.
+  ssr: false,
 } satisfies Config;

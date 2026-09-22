@@ -8,11 +8,12 @@ Source: https://sketchfab.com/3d-models/gaming-setup-6ba24900db4e4031a1d263cd324
 Title: Gaming setup
 */
 
-import React from 'react'
 import { useGLTF, useTexture } from '@react-three/drei'
 
-export default function ComputerSetup(props) {
-  const { nodes, materials } = useGLTF('models/gaming_setup-transformed.glb')
+type ComputerSetupProps = Record<string, unknown>;
+
+export default function ComputerSetup(props: ComputerSetupProps) {
+  const { nodes, materials } = useGLTF('models/gaming_setup-transformed.glb') as any
   const texture = useTexture('/myScreen.png')
   return (
     <group {...props} dispose={null}>

@@ -1,4 +1,4 @@
-import { motion, transform, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 import type { ReactNode } from "react";
 
 
@@ -7,7 +7,7 @@ interface PileCardProps {
   color: string;
   index: number;
   total: number;
-  sectionRef: React.RefObject<HTMLDivElement>; // ← we pass this from parent
+  sectionRef: React.RefObject<HTMLDivElement | null>; // ← we pass this from parent
 }
 
 export default function PileCard({
@@ -31,17 +31,22 @@ export default function PileCard({
   const end = start + slice;
  // slightly extended → smoother reveal of next card
 
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 300,
+    damping: 80,
+    mass: 1,
+  });
 
 
-  const y = useTransform(scrollYProgress, [start, end], [0, -1020]); // lift upward/out
+const y = useTransform(smoothProgress, [start, start + slice * 0.08, end], [0, 0, -1020]);
 
-  const rotateX = useTransform(scrollYProgress, [start, end], [0, 68]); // tilt forward
+  const rotateX = useTransform(smoothProgress, [start, end], [0, 18]); // tilt forward
 
-  const scale = useTransform(scrollYProgress, [start, end], [1, 0.1]); // shrink a bit
-  const scaleTop = useTransform(scrollYProgress,[start,end],[20,3001])
+  const scale = useTransform(smoothProgress, [start, end], [1, 0.1]); // shrink a bit
+  const scaleTop = useTransform(smoothProgress,[start,end],[0,3001])
 
 
-  const x = useTransform(scrollYProgress, [start, end], [0, 50]); // optional side peel
+  const x = useTransform(smoothProgress, [start, end], [0, 50]); // optional side peel
 const cardOffset = 5
 const cardScaleStep = 0.075
   return (
@@ -53,7 +58,7 @@ const cardScaleStep = 0.075
         height: "min(72vh, 540px)",
         zIndex: total - index, // highest z-index = top card
         transformOrigin: "center bottom",
-        perspective: "1400px", // enhances 3D tilt
+       
        
         
         y,

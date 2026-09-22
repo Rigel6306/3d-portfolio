@@ -1,10 +1,10 @@
 import { Fragment, useState } from "react";
-import { projectsDetails } from "../constants/consts";
+import { projectsDetails, type details } from "../constants/consts";
 import ProjectCard from "./UI/projectCard";
 
 const MyProjects = () => {
     // Default to the first project, and stay safe if the array is ever empty.
-    const [current, setCurrent] = useState(projectsDetails[0]);
+    const [current, setCurrent] = useState<details | null>(projectsDetails[0] ?? null);
 
     return (
         <section className="h-auto mt-10 sm:mt-20 mx-4 sm:mx-8 md:mx-10">
@@ -30,7 +30,7 @@ const MyProjects = () => {
                                 </p>
                                 {current.stack && (
                                     <div className="flex flex-wrap gap-3 text-amber-400 text-sm font-medium">
-                                        {current.stack.map((item) => (
+                                        {current.stack.map((item: string) => (
                                             <span key={item}>{item}</span>
                                         ))}
                                     </div>

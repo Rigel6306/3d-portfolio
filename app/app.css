@@ -54,10 +54,20 @@ body {
   margin: 0;
   padding: 0;
   width: 100%;
+  background: #fdfdfe;
 
   @media (prefers-color-scheme: dark) {
     color-scheme: dark;
   }
+}
+
+body {
+  min-height: 100vh;
+}
+
+#root,
+.home {
+  min-height: 100vh;
 }
 
 /* Use border-box everywhere to avoid layout surprises */
@@ -80,7 +90,7 @@ html, body {
 @layer components {
 
   .rootLayoutContainer {
-    @apply fixed left-0 right-0 w-full flex justify-between p-4 sm:p-6 md:p-10 items-center bg-gray-500/50 backdrop-blur-md top-0 h-16 sm:h-20 z-150 ;
+    @apply fixed left-0 right-0 w-full flex justify-between p-4 sm:p-6 md:p-10 items-center bg-[#0808083c] backdrop-blur-md top-0  h-10 sm:h-12 z-150 ;
 
     .links {
       @apply hidden sm:flex gap-4 md:gap-10;
@@ -119,4 +129,3 @@ html, body {
   }
 
 }
-
