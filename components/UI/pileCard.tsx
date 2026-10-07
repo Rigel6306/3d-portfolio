@@ -1,4 +1,5 @@
 import { motion, useScroll, useSpring, useTransform } from "framer-motion";
+import { div } from "motion/react-client";
 import type { ReactNode } from "react";
 
 
@@ -50,8 +51,14 @@ const y = useTransform(smoothProgress, [start, start + slice * 0.08, end], [0, 0
 const cardOffset = 5
 const cardScaleStep = 0.075
   return (
+
+    
+
+    
     <motion.div
-      className={ `absolute left-1/2 m-0 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-3xl shadow-1xl overflow-hidden will-change-transform`}
+      className={ `absolute left-1/2 m-0 top-1/2 -translate-x-1/2 -translate-y-1/2  shadow-1xl  overflow-hidden will-change-transform [clip-path:polygon(0_0,calc(100%-30px)_0,100%_30px,100%_100%,30px_100%,0_calc(100%-30px))]
+         bg-gradient-to-br from-[${color}] to-[#465cc9f0]
+        `}
       style={{
         backgroundColor: color,
         width: "min(95vw, 1020px)",
@@ -67,7 +74,11 @@ const cardScaleStep = 0.075
         scale,
       }}
     >
-      {children}
+     
+        {children}
+  
     </motion.div>
+
+    
   );
 }
