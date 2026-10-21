@@ -3,7 +3,7 @@ import HeroText from "./UI/HeroText.js";
 import FluidCanvas from "./UI/fluidCanvas.js";
 const Hero = () => {
     return (
-        <section id="hero" className="relative h-[100vh] sm:h-[100vh] overflow-x-hidden">
+        <section id="hero" className="relative h-screen sm:h-screen overflow-x-hidden">
                 {/* <div className="heroContainer h-screen">
                     <h1>Bridging Logic and Aesthetics. Fullstack in Action</h1>
 

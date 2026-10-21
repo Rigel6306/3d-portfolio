@@ -129,3 +129,23 @@ html, body {
   }
 
 }
+
+@layer utilities {
+  .blur-4xl {
+    filter: blur(120px);
+  }
+}
+
+@theme {
+  --animate-pulse-slow: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-pulse-fast: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-float: float 8s ease-in-out infinite;
+
+  @keyframes float {
+    0%, 100% {
+      transform: translate(10px, 230px) scale(3);
+    }
+    50% {
+      transform: translate(90px, -20px) scale(1.1);
+    }
+  }}

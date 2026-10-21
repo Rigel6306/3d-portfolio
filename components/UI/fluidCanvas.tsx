@@ -1,5 +1,6 @@
-// FluidCanvas.jsx
-import { useRef, useEffect } from "react";
+"use client";
+
+import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import {
   vertexShader,
@@ -7,263 +8,309 @@ import {
   displayFragmentShader,
 } from "../../utils/shaders.";
 
-const FluidCanvas = () => {
+export interface FluidCanvasProps {
+  /** Image shown at rest. */
+  topImage?: string;
+  /** Image revealed through the fluid. */
+  bottomImage?: string;
+  /** Brush radius in aspect-corrected uv units (≈0.03 – 0.15). */
+  brushSize?: number;
+  /** How long ink lingers (0.9 fast fade → 0.999 very slow). */
+  persistence?: number;
+  className?: string;
+}
+
+const SIM_SIZE = 512;
+const MAX_DPR = 2;
+
+const createTarget = () =>
+  new THREE.WebGLRenderTarget(SIM_SIZE, SIM_SIZE, {
+    minFilter: THREE.LinearFilter,
+    magFilter: THREE.LinearFilter,
+    format: THREE.RGBAFormat,
+    type: THREE.HalfFloatType,
+    depthBuffer: false,
+    stencilBuffer: false,
+  });
+
+const createPlaceholder = () => {
+  const tex = new THREE.DataTexture(new Uint8Array([8, 10, 14, 255]), 1, 1);
+  tex.needsUpdate = true;
+  return tex;
+};
+
+const FluidCanvas = ({
+  topImage = "/laptop2.jpg",
+  bottomImage = "/img2.jpg",
+  brushSize = 0.07,
+  persistence = 0.985,
+  className,
+}: FluidCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  // Read every frame, so tuning these never recreates the WebGL context.
+  const settings = useRef({ brushSize, persistence });
+  settings.current = { brushSize, persistence };
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // ensure canvas fills its parent without causing viewport overflow
-    canvas.style.display = 'block';
-    canvas.style.width = '100%';
-    canvas.style.height = '100%';
-    canvas.style.position = 'absolute';
-    canvas.style.left = '0';
-    canvas.style.top = '0';
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
 
     const renderer = new THREE.WebGLRenderer({
       canvas,
-      antialias: true,
-      precision: "highp",
+      antialias: false,
+      alpha: false,
+      powerPreference: "high-performance",
     });
 
-    const setRendererSizeToCanvas = () => {
-      const width = Math.max(1, canvas.clientWidth);
-      const height = Math.max(1, canvas.clientHeight);
-      renderer.setSize(width, height, false);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    };
-
-    setRendererSizeToCanvas();
-
-    const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    const geometry = new THREE.PlaneGeometry(2, 2);
+    const texel = new THREE.Vector2(1 / SIM_SIZE, 1 / SIM_SIZE);
 
-    // Mouse state
-    const mouse = new THREE.Vector2(0.5, 0.5);
-    const prevMouse = new THREE.Vector2(0.5, 0.5);
-    let isMoving = false;
-    let lastMoveTime = 0;
+    // ── Simulation ──────────────────────────────────────────────
+    let readTarget = createTarget();
+    let writeTarget = createTarget();
 
-    // Ping-pong render targets
-    const size = 500;
-    const pingPongTargets = [
-      new THREE.WebGLRenderTarget(size, size, {
-        minFilter: THREE.LinearFilter,
-        magFilter: THREE.LinearFilter,
-        format: THREE.RGBAFormat,
-        type: THREE.HalfFloatType,
-        depthBuffer: false,
-        stencilBuffer: false,
-      }),
-      new THREE.WebGLRenderTarget(size, size, {
-        minFilter: THREE.LinearFilter,
-        magFilter: THREE.LinearFilter,
-        format: THREE.RGBAFormat,
-        type: THREE.HalfFloatType,
-        depthBuffer: false,
-        stencilBuffer: false,
-      }),
-    ];
-    let currentTarget = 0;
+    const pointer = new THREE.Vector2(0.5, 0.5); // smoothed
+    const prevPointer = new THREE.Vector2(0.5, 0.5);
+    const target = new THREE.Vector2(0.5, 0.5); // raw
+    let hasPointer = false;
 
-    // Placeholder textures
-    const createPlaceholderTexture = (
-      color: string | CanvasGradient | CanvasPattern
-    ) => {
-      const c = document.createElement("canvas");
-      c.width = 512;
-      c.height = 512;
-      const ctx = c.getContext("2d");
-      if (!ctx) return new THREE.CanvasTexture(c);
-      ctx.fillStyle = color;
-      ctx.fillRect(0, 0, 512, 512);
-      return new THREE.CanvasTexture(c);
-    };
-
-    const topTexture = createPlaceholderTexture("#000000");
-    const bottomTexture = createPlaceholderTexture("#ff0000");
-
-    const trailsMaterial = new THREE.ShaderMaterial({
+    const simMaterial = new THREE.ShaderMaterial({
       uniforms: {
-        uPrevTrails: { value: null },
-        uMouse: { value: mouse },
-        uPrevMouse: { value: prevMouse },
-        uResolution: { value: new THREE.Vector2(size, size) },
-        uDecay: { value: 0.997 },
-        uIsMoving: { value: false },
+        uPrev: { value: null },
+        uPointer: { value: pointer },
+        uPrevPointer: { value: prevPointer },
+        uTexel: { value: texel },
+        uAspect: { value: 1 },
+        uRadius: { value: brushSize },
+        uDensityDecay: { value: persistence },
+        uVelocityDecay: { value: 0.975 },
+        uDt: { value: 1 },
+        uTime: { value: 0 },
       },
       vertexShader,
       fragmentShader: fluidFragmentShader,
+      depthTest: false,
+      depthWrite: false,
     });
+    const simScene = new THREE.Scene();
+    simScene.add(new THREE.Mesh(geometry, simMaterial));
+
+    // ── Display ─────────────────────────────────────────────────
+    const topPlaceholder = createPlaceholder();
+    const bottomPlaceholder = createPlaceholder();
 
     const displayMaterial = new THREE.ShaderMaterial({
       uniforms: {
-        uFluid: { value: 50 },
-        uTopTexture: { value: topTexture },
-        uBottomTexture: { value: bottomTexture },
-        uResolution: {
-          value: new THREE.Vector2(window.innerWidth, window.innerHeight),
-        },
-        uDpr: { value: window.devicePixelRatio },
+        uFluid: { value: null },
+        uTopTexture: { value: topPlaceholder },
+        uBottomTexture: { value: bottomPlaceholder },
+        uResolution: { value: new THREE.Vector2(1, 1) },
         uTopTextureSize: { value: new THREE.Vector2(1, 1) },
         uBottomTextureSize: { value: new THREE.Vector2(1, 1) },
-        uTime: { value: 10 },
+        uTexel: { value: texel },
+        uPointer: { value: pointer },
+        uTime: { value: 0 },
+        uIntro: { value: reduceMotion ? 1 : 0 },
       },
       vertexShader,
       fragmentShader: displayFragmentShader,
+      depthTest: false,
+      depthWrite: false,
     });
+    const scene = new THREE.Scene();
+    scene.add(new THREE.Mesh(geometry, displayMaterial));
 
-    // set initial resolution from canvas size to avoid using full viewport width (100vw)
-    displayMaterial.uniforms.uResolution.value.set(
-      canvas.clientWidth,
-      canvas.clientHeight
-    );
-    displayMaterial.uniforms.uDpr.value = window.devicePixelRatio;
-
-    const planeGeometry = new THREE.PlaneGeometry(2, 2);
-    const displayMesh = new THREE.Mesh(planeGeometry, displayMaterial);
-    scene.add(displayMesh);
-
-    const simMesh = new THREE.Mesh(planeGeometry, trailsMaterial);
-    const simScene = new THREE.Scene();
-    simScene.add(simMesh);
-
-    // Clear initial targets
-    renderer.setRenderTarget(pingPongTargets[0]);
+    renderer.setRenderTarget(readTarget);
     renderer.clear();
-    renderer.setRenderTarget(pingPongTargets[1]);
+    renderer.setRenderTarget(writeTarget);
     renderer.clear();
     renderer.setRenderTarget(null);
 
-    // Event handlers
-    const onMouseMove = (event: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      prevMouse.copy(mouse);
-      mouse.x = (event.clientX - rect.left) / rect.width;
-      mouse.y = 1 - (event.clientY - rect.top) / rect.height;
-      isMoving = true;
-      lastMoveTime = performance.now();
+    // ── Sizing ──────────────────────────────────────────────────
+    const resize = () => {
+      const w = Math.max(1, canvas.clientWidth);
+      const h = Math.max(1, canvas.clientHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_DPR));
+      renderer.setSize(w, h, false);
+      displayMaterial.uniforms.uResolution.value.set(w, h);
+      simMaterial.uniforms.uAspect.value = w / h;
     };
+    resize();
 
-    const onResize = () => {
-      setRendererSizeToCanvas();
-      displayMaterial.uniforms.uResolution.value.set(
-        canvas.clientWidth,
-        canvas.clientHeight
-      );
-      displayMaterial.uniforms.uDpr.value = window.devicePixelRatio;
-    };
+    // ── Images ──────────────────────────────────────────────────
+    let disposed = false;
+    let loaded = 0;
+    const ownedTextures: THREE.Texture[] = [];
 
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("resize", onResize);
-
-    // Visibility tracking
-    let isVisible = true;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          isVisible = entry.isIntersecting;
-          if (isVisible) {
-            animate(); // restart loop when visible again
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-    observer.observe(canvas);
-
-    // Animation loop
-    const animate = () => {
-      if (!isVisible) return; // stop loop when not visible
-      requestAnimationFrame(animate);
-
-      if (isMoving && performance.now() - lastMoveTime > 50) {
-        isMoving = false;
-      }
-
-      const prevTarget = pingPongTargets[currentTarget];
-      currentTarget = (currentTarget + 1) % 2;
-      const currentRenderTarget = pingPongTargets[currentTarget];
-
-      trailsMaterial.uniforms.uPrevTrails.value = prevTarget.texture;
-      trailsMaterial.uniforms.uMouse.value.copy(mouse);
-      trailsMaterial.uniforms.uPrevMouse.value.copy(prevMouse);
-      trailsMaterial.uniforms.uIsMoving.value = isMoving;
-
-      renderer.setRenderTarget(currentRenderTarget);
-      renderer.render(simScene, camera);
-
-      displayMaterial.uniforms.uFluid.value = currentRenderTarget.texture;
-      renderer.setRenderTarget(null);
-      renderer.render(scene, camera);
-    };
-
-    // Image loader
     const loadImage = (
       url: string,
-      type: string,
-      textureSizeVector: THREE.Vector2
+      textureKey: "uTopTexture" | "uBottomTexture",
+      sizeKey: "uTopTextureSize" | "uBottomTextureSize"
     ) => {
       const img = new Image();
+      img.crossOrigin = "anonymous";
       img.onload = () => {
-        const originalWidth = img.width;
-        const originalHeight = img.height;
-        textureSizeVector.set(originalWidth, originalHeight);
+        if (disposed) return;
 
-        const maxSize = 4096;
-        let newWidth = originalWidth;
-        let newHeight = originalHeight;
-
-        if (originalWidth > maxSize || originalHeight > maxSize) {
-          if (originalWidth > originalHeight) {
-            newWidth = maxSize;
-            newHeight = Math.floor(originalHeight * (maxSize / originalWidth));
-          } else {
-            newHeight = maxSize;
-            newWidth = Math.floor(originalWidth * (maxSize / originalHeight));
-          }
+        const max = renderer.capabilities.maxTextureSize;
+        const k = Math.min(1, max / Math.max(img.width, img.height));
+        let source: HTMLImageElement | HTMLCanvasElement = img;
+        if (k < 1) {
+          const c = document.createElement("canvas");
+          c.width = Math.floor(img.width * k);
+          c.height = Math.floor(img.height * k);
+          c.getContext("2d")?.drawImage(img, 0, 0, c.width, c.height);
+          source = c;
         }
 
-        const canvas = document.createElement("canvas");
-        canvas.width = newWidth;
-        canvas.height = newHeight;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-        ctx.drawImage(img, 0, 0, newWidth, newHeight);
+        const tex = new THREE.Texture(source);
+        tex.minFilter = THREE.LinearFilter;
+        tex.magFilter = THREE.LinearFilter;
+        tex.generateMipmaps = false;
+        tex.needsUpdate = true;
+        ownedTextures.push(tex);
 
-        const newTexture = new THREE.CanvasTexture(canvas);
-        newTexture.minFilter = THREE.LinearFilter;
-        newTexture.magFilter = THREE.LinearFilter;
+        displayMaterial.uniforms[textureKey].value = tex;
+        displayMaterial.uniforms[sizeKey].value.set(source.width, source.height);
 
-        if (type === "top") {
-          displayMaterial.uniforms.uTopTexture.value = newTexture;
-          displayMaterial.uniforms.uTopTextureSize.value = textureSizeVector;
-        } else if (type === "bottom") {
-          displayMaterial.uniforms.uBottomTexture.value = newTexture;
-          displayMaterial.uniforms.uBottomTextureSize.value = textureSizeVector;
-        }
+        loaded += 1;
+        if (reduceMotion) renderFrame(0);
       };
       img.src = url;
     };
 
-    const topTextureSize = new THREE.Vector2(1, 1);
-    const bottomTextureSize = new THREE.Vector2(1, 1);
-    loadImage("/bck1.jpg", "top", topTextureSize);
-    loadImage("/img2.jpg", "bottom", bottomTextureSize);
+    loadImage(topImage, "uTopTexture", "uTopTextureSize");
+    loadImage(bottomImage, "uBottomTexture", "uBottomTextureSize");
 
-    animate();
+    // ── Frame ───────────────────────────────────────────────────
+    let time = 0;
+
+    const renderFrame = (dt: number) => {
+      const s = settings.current;
+      time += dt;
+
+      // Smooth the pointer so strokes are fluid and frame-rate independent;
+      // the stroke decays to zero naturally when the cursor stops.
+      prevPointer.copy(pointer);
+      pointer.lerp(target, 1 - Math.exp(-dt * 28));
+
+      simMaterial.uniforms.uPrev.value = readTarget.texture;
+      simMaterial.uniforms.uRadius.value = s.brushSize;
+      simMaterial.uniforms.uDensityDecay.value = s.persistence;
+      simMaterial.uniforms.uDt.value = dt * 60;
+      simMaterial.uniforms.uTime.value = time;
+
+      renderer.setRenderTarget(writeTarget);
+      renderer.render(simScene, camera);
+      renderer.setRenderTarget(null);
+      [readTarget, writeTarget] = [writeTarget, readTarget];
+
+      const u = displayMaterial.uniforms;
+      if (!reduceMotion && loaded === 2) {
+        u.uIntro.value += (1 - u.uIntro.value) * (1 - Math.exp(-dt * 2.2));
+      }
+      u.uFluid.value = readTarget.texture;
+      u.uTime.value = time;
+      renderer.render(scene, camera);
+    };
+
+    let last = performance.now();
+    const tick = (now: number) => {
+      const dt = Math.min((now - last) / 1000, 0.05);
+      last = now;
+      renderFrame(dt);
+    };
+    const start = () => {
+      last = performance.now();
+      renderer.setAnimationLoop(tick);
+    };
+    const stop = () => renderer.setAnimationLoop(null);
+
+    // ── Events ──────────────────────────────────────────────────
+    const onPointerMove = (e: PointerEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width;
+      const y = 1 - (e.clientY - rect.top) / rect.height;
+
+      if (x < 0 || x > 1 || y < 0 || y > 1) {
+        hasPointer = false;
+        return;
+      }
+      target.set(x, y);
+      if (!hasPointer) {
+        // First contact: jump, don't streak from the old position.
+        pointer.copy(target);
+        prevPointer.copy(target);
+        hasPointer = true;
+      }
+    };
+
+    const resizeObserver = new ResizeObserver(() => {
+      resize();
+      if (reduceMotion) renderFrame(0);
+    });
+    resizeObserver.observe(canvas);
+
+    const visibilityObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (reduceMotion) return;
+        if (entry.isIntersecting) start();
+        else stop();
+      },
+      { threshold: 0.05 }
+    );
+    visibilityObserver.observe(canvas);
+
+    const onContextLost = (e: Event) => e.preventDefault();
+    canvas.addEventListener("webglcontextlost", onContextLost);
+
+    if (!reduceMotion) {
+      window.addEventListener("pointermove", onPointerMove, { passive: true });
+    } else {
+      renderFrame(0);
+    }
 
     return () => {
-      observer.disconnect();
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("resize", onResize);
+      disposed = true;
+      stop();
+      resizeObserver.disconnect();
+      visibilityObserver.disconnect();
+      canvas.removeEventListener("webglcontextlost", onContextLost);
+      window.removeEventListener("pointermove", onPointerMove);
+
+      readTarget.dispose();
+      writeTarget.dispose();
+      geometry.dispose();
+      simMaterial.dispose();
+      displayMaterial.dispose();
+      topPlaceholder.dispose();
+      bottomPlaceholder.dispose();
+      ownedTextures.forEach((t) => t.dispose());
+      // No forceContextLoss(): StrictMode remounts onto the same <canvas>.
       renderer.dispose();
     };
-  }, []);
+  }, [topImage, bottomImage]);
 
-  return <canvas ref={canvasRef} />;
+  return (
+    <canvas
+      ref={canvasRef}
+      className={className}
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        display: "block",
+      }}
+    />
+  );
 };
 
 export default FluidCanvas;

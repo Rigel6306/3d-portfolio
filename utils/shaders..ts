@@ -1,4 +1,6 @@
-const vertexShader = `
+// utils/shaders.ts
+
+export const vertexShader = /* glsl */ `
   varying vec2 vUv;
 
   void main() {
@@ -7,81 +9,153 @@ const vertexShader = `
   }
 `;
 
-const fluidFragmentShader = `
-  uniform sampler2D uPrevTrails;
-  uniform vec2 uMouse;
-  uniform vec2 uPrevMouse;
-  uniform vec2 uResolution;
-  uniform float uDecay;
-  uniform bool uIsMoving;
+/**
+ * Simulation pass.
+ * Ping-pong buffer layout:  R = ink density,  G/B = velocity (uv units / frame)
+ *
+ * Adjusted for a slower, heavier, more viscous real-world water effect.
+ */
+export const fluidFragmentShader = /* glsl */ `
+  uniform sampler2D uPrev;
+  uniform vec2  uPointer;
+  uniform vec2  uPrevPointer;
+  uniform vec2  uTexel;
+  uniform float uAspect;
+  uniform float uRadius;
+  uniform float uDensityDecay;
+  uniform float uVelocityDecay;
+  uniform float uDt;      // frame-rate normalised (1.0 == 60fps)
+  uniform float uTime;
 
   varying vec2 vUv;
 
+  float hash(vec2 p) {
+    p = fract(p * vec2(123.34, 456.21));
+    p += dot(p, p + 45.32);
+    return fract(p.x * p.y);
+  }
+
+  float vnoise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(
+      mix(hash(i),                  hash(i + vec2(1.0, 0.0)), f.x),
+      mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x),
+      f.y
+    );
+  }
+
+  vec2 curl(vec2 p) {
+    float e  = 0.02;
+    float n1 = vnoise(p + vec2(0.0, e));
+    float n2 = vnoise(p - vec2(0.0, e));
+    float n3 = vnoise(p + vec2(e, 0.0));
+    float n4 = vnoise(p - vec2(e, 0.0));
+    return vec2(n1 - n2, -(n3 - n4)) / (2.0 * e);
+  }
+
   void main() {
-    vec4 prevState = texture2D(uPrevTrails, vUv);
-    float decayedPrev = prevState.r * uDecay;
-    float newValue = decayedPrev;
+    vec4 prev = texture2D(uPrev, vUv);
 
-    if (uIsMoving) {
-      vec2 mouseDirection = uMouse - uPrevMouse;
-      float lineLength = length(mouseDirection);
+    // 1. semi-Lagrangian advection (slightly dampened for inertia)
+    vec2 back = vUv - prev.gb * (uDt * 0.85);
+    vec4 adv  = texture2D(uPrev, back);
 
-      if (lineLength > 0.001) {
-        vec2 mouseDir = mouseDirection / lineLength;
-        vec2 toPixel = vUv - uPrevMouse;
-        float projAlong = dot(toPixel, mouseDir);
-        projAlong = clamp(projAlong, 0.0, lineLength);
+    // 2. diffusion (heavier viscosity weighting for smoother spread)
+    vec4 nb =
+      texture2D(uPrev, back + vec2( uTexel.x, 0.0)) +
+      texture2D(uPrev, back + vec2(-uTexel.x, 0.0)) +
+      texture2D(uPrev, back + vec2(0.0,  uTexel.y)) +
+      texture2D(uPrev, back + vec2(0.0, -uTexel.y));
 
-        vec2 closestPoint = uPrevMouse + projAlong * mouseDir;
-        float dist = length(vUv - closestPoint);
-        float lineWidth = 0.08;
-        float intensity = smoothstep(lineWidth, 0.0, dist) * 0.8;
+    float density  = adv.r  * 0.68 + nb.r  * 0.08;
+    vec2  velocity = adv.gb * 0.80 + nb.gb * 0.05;
 
-        newValue = max(intensity, decayedPrev);
-      }
+    // 3. decay (slower decay so fluid lingers and glides naturally)
+    density  *= pow(max(uDensityDecay, 0.985), uDt);
+    velocity *= pow(max(uVelocityDecay, 0.98), uDt);
+
+    // 4. gentler ambient swirl for calmer water currents
+    velocity += curl(vUv * 2.5 + uTime * 0.08) * 0.0004 * density * uDt;
+
+    // 5. pointer splat (softer, delayed momentum transfer)
+    vec2 A   = vec2(uAspect, 1.0);
+    vec2 seg = uPointer - uPrevPointer;
+    float segLen = length(seg);
+
+    if (segLen > 0.0002) {
+      vec2 a  = uPrevPointer * A;
+      vec2 b  = uPointer * A;
+      vec2 p  = vUv * A;
+      vec2 ab = b - a;
+      float t = clamp(dot(p - a, ab) / max(dot(ab, ab), 1e-8), 0.0, 1.0);
+      float dist = length(p - (a + ab * t));
+
+      float falloff  = exp(-(dist * dist) / (uRadius * uRadius * 1.2)); // wider spread
+      float strength = clamp(segLen * 14.0, 0.1, 0.7); // softer peak
+
+      density  += falloff * strength * 0.35;
+      velocity += seg * falloff * 0.55; // reduced push speed
     }
 
-    gl_FragColor = vec4(newValue, 0.0, 0.0, 1.0);
+    density = min(density, 1.3);
+    float vLen = length(velocity);
+    if (vLen > 0.02) velocity *= 0.02 / vLen; // lower velocity cap for calm flow
+
+    gl_FragColor = vec4(density, velocity, 1.0);
   }
 `;
 
-const displayFragmentShader = `
+/**
+ * Display pass.
+ * Unchanged structurally, keeping the clean refractive lens aesthetic.
+ */
+export const displayFragmentShader = /* glsl */ `
   uniform sampler2D uFluid;
   uniform sampler2D uTopTexture;
   uniform sampler2D uBottomTexture;
-  uniform vec2 uResolution;
-  uniform vec2 uTopTextureSize;
-  uniform vec2 uBottomTextureSize;
-  uniform float uTime;           // ← ADD THIS uniform (update in loop: performance.now() * 0.001)
+  uniform vec2  uResolution;
+  uniform vec2  uTopTextureSize;
+  uniform vec2  uBottomTextureSize;
+  uniform vec2  uTexel;
+  uniform vec2  uPointer;
+  uniform float uTime;
+  uniform float uIntro;
 
   varying vec2 vUv;
 
-  // Cleaner noise (your original is fine, but we use it more sparingly)
+  float hash(vec2 p) {
+    p = fract(p * vec2(123.34, 456.21));
+    p += dot(p, p + 45.32);
+    return fract(p.x * p.y);
+  }
+
   float noise(vec2 p) {
     vec2 i = floor(p);
     vec2 f = fract(p);
     f = f * f * (3.0 - 2.0 * f);
-    float a = fract(sin(dot(i + vec2(0.0), vec2(12.9898, 78.233))) * 43758.5453);
-    float b = fract(sin(dot(i + vec2(1.0, 0.0), vec2(12.9898, 78.233))) * 43758.5453);
-    float c = fract(sin(dot(i + vec2(0.0, 1.0), vec2(12.9898, 78.233))) * 43758.5453);
-    float d = fract(sin(dot(i + vec2(1.0, 1.0), vec2(12.9898, 78.233))) * 43758.5453);
-    return mix(mix(a, b, f.x), mix(c, d, f.y), f.y);
+    return mix(
+      mix(hash(i),                  hash(i + vec2(1.0, 0.0)), f.x),
+      mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x),
+      f.y
+    );
   }
 
   float fbm(vec2 p) {
-    float value = 0.0;
-    float amp   = 0.5;
-    for (int i = 0; i < 3; i++) {   // reduced octaves → cleaner
-      value += amp * noise(p);
-      p *= 2.3;
-      amp *= 0.45;
+    float v = 0.0;
+    float a = 0.5;
+    for (int i = 0; i < 4; i++) {
+      v += a * noise(p);
+      p  = p * 2.1 + 17.0;
+      a *= 0.5;
     }
-    return value;
+    return v;
   }
 
-  vec2 getCoverUV(vec2 uv, vec2 texSize) {
-    if (texSize.x < 1.0 || texSize.y < 1.0) return uv;
-    vec2 s = uResolution / texSize;
+  vec2 coverUV(vec2 uv, vec2 texSize) {
+    if (texSize.x < 2.0 || texSize.y < 2.0) return uv;
+    vec2 s      = uResolution / texSize;
     float scale = max(s.x, s.y);
     vec2 scaled = texSize * scale;
     vec2 offset = (uResolution - scaled) * 0.5;
@@ -89,60 +163,51 @@ const displayFragmentShader = `
   }
 
   void main() {
-    float fluid = texture2D(uFluid, vUv).r;
+    vec2 A = vec2(uResolution.x / uResolution.y, 1.0);
 
-    vec2 topUV    = getCoverUV(vUv, uTopTextureSize);
-    vec2 bottomUV = getCoverUV(vUv, uBottomTextureSize);
+    // ── fluid state ──
+    vec4  f = texture2D(uFluid, vUv);
+    float d = f.r;
+    vec2  v = f.gb;
 
-    vec4 topColor    = texture2D(uTopTexture, topUV);
-    vec4 bottomColor = texture2D(uBottomTexture, bottomUV);
+    float dl = texture2D(uFluid, vUv - vec2(uTexel.x, 0.0)).r;
+    float dr = texture2D(uFluid, vUv + vec2(uTexel.x, 0.0)).r;
+    float db = texture2D(uFluid, vUv - vec2(0.0, uTexel.y)).r;
+    float dt = texture2D(uFluid, vUv + vec2(0.0, uTexel.y)).r;
+    vec2 grad = vec2(dr - dl, dt - db);
 
-    // ─── Smoother reveal with gentle organic edge ───
-    float baseReveal = smoothstep(0.10, 0.62, fluid);
-    float edgeNoise  = fbm(vUv * 3.2 + uTime * 0.08) * 0.12;
-    float reveal     = smoothstep(0.0, 1.0, baseReveal + edgeNoise - 0.08);
+    // ── organic reveal mask ──
+    float n     = fbm(vUv * A * 3.2 + uTime * 0.05);
+    float field = d + (n - 0.5) * 0.2 * smoothstep(0.0, 0.25, d);
+    float reveal = smoothstep(0.16, 0.56, field);
 
-    // ─── Core + trail energy (softer, more glassy/ethereal) ───
-    float distToCenter = length(vUv - 1.5);
-    float pulse      = 5.0 + sin(uTime * 2.4 + distToCenter * 14.0) * 0.07; // subtle breathing
+    // ── refraction ──
+    vec2 refr = grad * 0.35 + v * 0.6;
+    vec2 par  = (uPointer - 0.5) * 0.012;
 
-    float core       = smoothstep(0.24, 0.06, fluid) * pulse * 1.35;
-    float trail      = smoothstep(0.58, 0.12, fluid) * 0.95;
+    vec2 topUV = coverUV(vUv + refr * 0.5 + par, uTopTextureSize);
+    vec2 botUV = coverUV(vUv - refr - par * 1.5, uBottomTextureSize);
 
-    // Light organic trail distortion (less aggressive than original)
-    vec2 trailFlow   = vec2(
-      sin(fluid * 136.0 + uTime * 0.6 + vUv.y * 4.0),
-      cos(fluid * 15.0 - uTime * 0.5 + vUv.x * 5.0)
-    ) * 0.018 * trail;
+    vec3 top = texture2D(uTopTexture, topUV).rgb;
 
-    float subtleNoise = fbm(vUv * 1.5 + trailFlow + uTime * 0.1) * trail * 1.45;
-
-    float energy     = core * 1.3 + trail * 0.85 + subtleNoise * 0.5;
-
-    // ─── Glow color: silvery cyan → soft violet (premium feel) ───
-    vec3 glowColor = mix(
-     vec3(0.85, 1.96, 1.15),     // bright silver-cyan core
-      vec3(1.65, 1.45, 0.05),     // gentle violet trail
-      trail * 0.6 + subtleNoise * 0.4
+    vec3 bottom = vec3(
+      texture2D(uBottomTexture, botUV + refr * 0.12).r,
+      texture2D(uBottomTexture, botUV).g,
+      texture2D(uBottomTexture, botUV - refr * 0.12).b
     );
 
-    // ─── Radial + intensity falloff ───
-    float radial     = exp(-distToCenter * 15.8) * (0.8 + pulse * 0.2); 
-    float opacity    = energy * radial * reveal;
+    vec3 col = mix(top, bottom, reveal);
 
-    // ─── Final composition ───
-    vec4 finalColor = mix(topColor, bottomColor, reveal);
+    vec3  N    = normalize(vec3(-grad * 14.0, 1.0));
+    vec3  L    = normalize(vec3(0.4, 0.5, 0.8));
+    float spec = pow(max(dot(N, L), 0.0), 48.0) * smoothstep(0.02, 0.3, d);
 
-    // Additive glow only – tuned lower for cleanliness
-    finalColor.rgb += glowColor * opacity * 1.9;
+    col += spec * 0.45;
 
-    // Optional subtle chromatic breathing on edges (luxury touch)
-    float chromAmt = smoothstep(0.45, 0.05, fluid) * 0.018 * (sin(uTime * 1.6)*0.4 + 0.6);
-    finalColor.r += texture2D(uTopTexture, topUV + vec2(chromAmt, 0.0)).r * chromAmt * 1.5;
-    finalColor.b += texture2D(uTopTexture, topUV - vec2(chromAmt*0.7, 0.0)).b * chromAmt * 1.5;
+    float vig = smoothstep(1.15, 0.35, length(vUv - 0.5));
+    col *= mix(0.82, 1.0, vig);
+    col += (hash(vUv * uResolution + fract(uTime)) - 0.5) * 0.018;
 
-    gl_FragColor = finalColor;
+    gl_FragColor = vec4(clamp(col, 0.0, 1.0) * uIntro, 1.0);
   }
 `;
-
-export {vertexShader,fluidFragmentShader,displayFragmentShader}

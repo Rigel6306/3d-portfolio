@@ -1,17 +1,16 @@
-
-
-const IMG_PADDING = 42
-import { useRef } from "react"
+import { useMemo, useRef } from "react"
 import About from "components/about"
 import { motion, useScroll, useTransform } from 'framer-motion'
 import StickyCards from "./stickyCards"
 import '../../app/styles/parallax.css'
- 
-export const TextParallaxContentContainer = () => {
 
-    const targetRef = useRef<HTMLDivElement | null>(null)
-    const parallaxContent = (
-    <div className="bg-linear-to-b from-[#060606fe] via-[#5656a0c7] to-[#0000]">
+const IMG_PADDING = 42
+
+export const TextParallaxContentContainer = () => {
+    // Static tree: built once so scroll-unrelated re-renders don't rebuild
+    // About / StickyCards. Animations run on motion values, not React state.
+    return useMemo(() => (
+        <div className="bg-linear-to-b from-[#060606fe] via-[#5656a0c7] to-[#0000]">
             <TextParallaxContent
                 img={'/parallax1.jpg'}
                 subHeading={"Hello there, delightful essence"}
@@ -19,50 +18,43 @@ export const TextParallaxContentContainer = () => {
             >
                 <div className="aboutUsSection">
                     <h1 className="parallaxPageHeading text-white">About Me</h1>
-                    <div className="aboutContainer h-[200vh]" ref={targetRef}>
-                            <About />
+                    <div className="aboutContainer h-[200vh]">
+                        <About />
                     </div>
                 </div>
-        </TextParallaxContent>
+            </TextParallaxContent>
 
-        <TextParallaxContent
-            img={'/parallax2.jpg'}
-            subHeading={"I do witchery in"}
-            heading={"Web and Mobile Development"}
-        >
-            <div className="servicesSection   h-[600vh]  ">
-                <StickyCards />
-            </div>
-        </TextParallaxContent>
+            <TextParallaxContent
+                img={'/parallax2.jpg'}
+                subHeading={"I do witchery in"}
+                heading={"Web and Mobile Development"}
+            >
+                <div className="servicesSection   h-[600vh]  ">
+                    <StickyCards />
+                </div>
+            </TextParallaxContent>
 
-        <TextParallaxContent
-            img={'/parallax3.jpg'}
-            subHeading={"Hire Me"}
-            heading={"charitha1@live.com"}
-        >
-            <div />
-        </TextParallaxContent>
-    </div>
-    )
-    return parallaxContent
-
+            <TextParallaxContent
+                img={'/parallax3.jpg'}
+                subHeading={"Hire Me"}
+                heading={"charitha1@live.com"}
+            >
+                <div />
+            </TextParallaxContent>
+        </div>
+    ), [])
 }
 
 interface TextParalaxPropsType {
-    img:string,
-    subHeading:string,
-    heading:string,
-    children?:React.ReactNode
+    img: string,
+    subHeading: string,
+    heading: string,
+    children?: React.ReactNode
 }
 
-const TextParallaxContent = ({ img, subHeading, heading, children }:TextParalaxPropsType) => {
-
+const TextParallaxContent = ({ img, subHeading, heading, children }: TextParalaxPropsType) => {
     return (
-        <div className="mt-10 w-full max-w-full overflow-clip" style={{
-            
-           
-            
-        }} >
+        <div className="mt-10 w-full max-w-full overflow-clip">
             <div className='relative h-[150vh]  p-3'>
                 <StickyImage img={img} />
                 <TextOverlay heading={heading} subHeading={subHeading} />
@@ -79,8 +71,9 @@ const StickyImage = ({ img }: { img: string }) => {
         offset: ["end end", "end start"]
     })
 
+    // scale and opacity used the exact same mapping, so compute it once
     const scale = useTransform(scrollYProgress, [0, 1], [1, 0])
-    const opacity = useTransform(scrollYProgress, [0, 1], [1, 0])
+    const opacity = scale
 
     return (
         <motion.div
@@ -91,15 +84,13 @@ const StickyImage = ({ img }: { img: string }) => {
                 height: `calc(97vh - ${IMG_PADDING * 2}px)`,
                 top: 100,
                 scale,
-                willChange:"transform",
+                willChange: "transform",
             }}
             ref={refTarget}
             className='sticky z-0 overflow-hidden rounded-3xl'
         >
             <motion.div
-                style={{
-                    opacity
-                }}
+                style={{ opacity }}
                 className="absolute inset-0 bg-neutral-950/60 rounded-3xl"
             />
         </motion.div>
@@ -107,7 +98,6 @@ const StickyImage = ({ img }: { img: string }) => {
 }
 
 const TextOverlay = ({ heading, subHeading }: { heading: string; subHeading: string }) => {
-
     const refTarget = useRef<HTMLDivElement | null>(null)
     const { scrollYProgress } = useScroll({
         target: refTarget,
@@ -115,10 +105,12 @@ const TextOverlay = ({ heading, subHeading }: { heading: string; subHeading: str
     })
     const y = useTransform(scrollYProgress, [0, 1], [250, -250])
     const opacity = useTransform(scrollYProgress, [0.10, 0.50, 0.75], [0, 1, 0])
+
     return (
         <motion.div
             ref={refTarget}
-            style={{ y, opacity }}
+            // promote to its own compositor layer so y/opacity don't trigger repaints
+            style={{ y, opacity, willChange: "transform, opacity" }}
             className="absolute left-0 top-1/2 -translate-y-1/2 flex w-full flex-col items-center justify-center"
         >
             <div className="overlaySubHead mb-2 text-center text-sm sm:text-[3rem]  ">{subHeading}</div>

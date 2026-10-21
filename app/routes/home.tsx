@@ -2,6 +2,7 @@ import type { Route } from "./+types/home";
 import { Suspense, lazy, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ReactLenis } from "lenis/react";
+import GeminiGlow from "components/geminiGlow";
 
 // Dynamic imports
 const loadHero = () => import("components/hero");
@@ -116,13 +117,14 @@ export default function Home() {
 
   return (
     <ReactLenis root options={{ lerp: 0.8, duration: 4.5, smoothWheel: true }}>
-      <div className="home bg-[#0000]">
+      <div className="home bg-[#000000]">
         <AnimatePresence mode="wait">
           {!isReady && <PortfolioLoader key="portfolio-loader" />}
         </AnimatePresence>
 
         {isReady && (
           <Suspense fallback={null}>
+           
             <Hero />
             <TextParallaxContentContainer />
           </Suspense>
