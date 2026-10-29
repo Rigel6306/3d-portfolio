@@ -1,9 +1,9 @@
 import type { Route } from "./+types/home";
-import { Suspense, lazy, useState, useEffect } from "react";
+import { Suspense, lazy, useCallback, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ReactLenis } from "lenis/react";
-import GeminiGlow from "components/geminiGlow";
 
+import Footer from "components/UI/footer";
 // Dynamic imports
 const loadHero = () => import("components/hero");
 const loadStickySlider = () =>
@@ -14,59 +14,91 @@ const loadStickySlider = () =>
 const Hero = lazy(loadHero);
 const TextParallaxContentContainer = lazy(loadStickySlider);
 
-const MIN_LOADER_DURATION_MS = 2500; // 2.5 seconds minimum display time
+const MIN_LOADER_DURATION_MS = 2500;
+const LENIS_OPTIONS = { lerp: 0.8, duration: 4.5, smoothWheel: true };
 
-function PortfolioLoader() {
+function PortfolioLoader({
+  progress,
+  error,
+}: {
+  progress: number;
+  error: boolean;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className="fixed inset-0 z-[200] flex items-center justify-center overflow-hidden bg-[#050816] text-white"
+      className="fixed inset-0 z-[200] flex flex-col items-center justify-center overflow-hidden bg-[#070707] text-white select-none"
       aria-live="polite"
       aria-label="Loading portfolio"
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(92,51,204,0.3),transparent_35%),radial-gradient(circle_at_bottom,rgba(51,194,204,0.18),transparent_30%)]" />
+      {/* Subtle monochrome ambient glow & vignette */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.03)_0%,transparent_70%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#111_1px,transparent_1px),linear-gradient(to_bottom,#111_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-30 pointer-events-none" />
 
-      <div className="relative flex flex-col items-center gap-5 text-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="flex h-16 w-16 items-center justify-center rounded-full border border-white/15 bg-white/5 shadow-[0_0_30px_rgba(92,51,204,0.35)] backdrop-blur-sm"
-        >
-          <div className="text-xl font-black tracking-[0.18em] text-[#a7f3d0]">CI</div>
-        </motion.div>
+      {/* Main Container */}
+      <div className="relative flex flex-col items-center max-w-sm w-full px-6 text-center">
+        
+        {/* Branding Monogram / Logo */}
+      
 
-        <div className="space-y-2">
-          <p className="text-xs font-medium uppercase tracking-[0.45em] text-white/60">
-            Preparing experience
-          </p>
-          <h1 className="text-3xl font-semibold tracking-[-0.06em] text-white md:text-4xl">
-            Charitha Iravana
-          </h1>
+        {/* Typography */}
+        <div className="space-y-1.5 mb-10">
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="text-[11px] font-medium uppercase tracking-[0.3em] text-white/40"
+          >
+           Hey Delightfull Essence
+          </motion.p>
+          <motion.h1 
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="text-2xl font-light tracking-tight text-white/90"
+          >
+            Hang On
+          </motion.h1>
         </div>
 
-        <div className="mt-2 flex items-end gap-2">
-          {[0, 1, 2].map((bar) => (
-            <motion.span
-              key={bar}
-              animate={{
-                height: [8, 28, 8],
-                opacity: [0.45, 1, 0.45],
-              }}
-              transition={{
-                duration: 1.2,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: bar * 0.15,
-              }}
-              className="block w-1.5 rounded-full bg-linear-to-t from-mint via-aqua to-lavender"
-              style={{ height: 8 }}
+        {/* Percentage Loader Bar & Counter */}
+        <div className="w-full space-y-3">
+          <div className="flex justify-between items-center text-xs tracking-wider text-white/40 font-mono px-0.5">
+            <span>{error ? "LOAD ERROR" : "LOADING"}</span>
+            {!error && <span className="text-white/80 font-medium">{progress}%</span>}
+          </div>
+
+          {/* Track */}
+          <div className="relative h-[2px] w-full overflow-hidden rounded-full bg-white/10">
+            {/* Filler */}
+            <motion.div
+              className="absolute top-0 left-0 h-full bg-white rounded-full shadow-[0_0_12px_rgba(255,255,255,0.6)]"
+              style={{ width: `${error ? 100 : progress}%` }}
+              transition={{ type: "spring", stiffness: 50, damping: 20 }}
             />
-          ))}
+          </div>
+          {error && (
+            <p role="alert" className="text-xs text-white/60">
+              Something went wrong while loading.{" "}
+              <button
+                type="button"
+                className="text-white underline underline-offset-4"
+                onClick={() => window.location.reload()}
+              >
+                Try again
+              </button>
+            </p>
+          )}
         </div>
+
+      </div>
+
+      {/* Bottom Status / Micro-detail */}
+      <div className="absolute bottom-10 text-[10px] tracking-[0.25em] uppercase text-white/25 font-mono">
+        Secure &bull; Interactive &bull; 2026
       </div>
     </motion.div>
   );
@@ -90,43 +122,88 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
-  const [isReady, setIsReady] = useState(false);
+  const [modulesReady, setModulesReady] = useState(false);
+  const [canvasReady, setCanvasReady] = useState(false);
+  const [minimumTimeElapsed, setMinimumTimeElapsed] = useState(false);
+  const [sectionReady, setSectionReady] = useState(false);
+  const [sectionError, setSectionError] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const isReady = modulesReady && canvasReady && minimumTimeElapsed;
+  const progress = isReady ? 100 : modulesReady ? (canvasReady ? 94 : 72) : 28;
+  const handleCanvasLoad = useCallback(() => setCanvasReady(true), []);
 
   useEffect(() => {
     let isMounted = true;
 
-    // Minimum delay timer
-    const minTimer = new Promise((resolve) =>
-      setTimeout(resolve, MIN_LOADER_DURATION_MS)
+    const minTimer = window.setTimeout(
+      () => setMinimumTimeElapsed(true),
+      MIN_LOADER_DURATION_MS
     );
 
-    // Preload both heavy lazy components
-    const componentsLoaded = Promise.all([loadHero(), loadStickySlider()]);
+    loadHero()
+      .then(() => {
+        if (isMounted) setModulesReady(true);
+      })
+      .catch((error: unknown) => {
+        console.error("Failed to load the home page components.", error);
+        if (isMounted) setLoadError(true);
+      });
 
-    // Wait for both loading & minimum time to finish
-    Promise.all([componentsLoaded, minTimer]).then(() => {
-      if (isMounted) {
-        setIsReady(true);
-      }
-    });
+    return () => {
+      isMounted = false;
+      window.clearTimeout(minTimer);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!modulesReady || !canvasReady) return;
+
+    let isMounted = true;
+    loadStickySlider()
+      .then(() => {
+        if (isMounted) setSectionReady(true);
+      })
+      .catch((error: unknown) => {
+        console.error("Failed to load the home page content section.", error);
+        if (isMounted) setSectionError(true);
+      });
 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [modulesReady, canvasReady]);
 
   return (
-    <ReactLenis root options={{ lerp: 0.8, duration: 4.5, smoothWheel: true }}>
+    <ReactLenis root options={LENIS_OPTIONS}>
       <div className="home bg-[#000000]">
         <AnimatePresence mode="wait">
-          {!isReady && <PortfolioLoader key="portfolio-loader" />}
+          {!isReady && (
+            <PortfolioLoader
+              key="portfolio-loader"
+              progress={progress}
+              error={loadError}
+            />
+          )}
         </AnimatePresence>
 
-        {isReady && (
+        {modulesReady && (
           <Suspense fallback={null}>
-           
-            <Hero />
-            <TextParallaxContentContainer />
+            <Hero onLoad={handleCanvasLoad} />
+            {sectionReady &&
+              (
+                <div className="div">
+                    <TextParallaxContentContainer />
+                    <Footer/>
+                </div>
+              )
+             
+             
+             }
+            {sectionError && (
+              <p role="alert" className="px-6 py-12 text-center text-white/70">
+                The rest of the portfolio could not be loaded. Please refresh to try again.
+              </p>
+            )}
           </Suspense>
         )}
       </div>

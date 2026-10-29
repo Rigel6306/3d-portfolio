@@ -1,31 +1,20 @@
+"use client"; // overlay is a render function, so this must be a client component
 
-import HeroText from "./UI/HeroText.js";
-import FluidCanvas from "./UI/fluidCanvas.js";
-const Hero = () => {
-    return (
-        <section id="hero" className="relative h-screen sm:h-screen overflow-x-hidden">
-                {/* <div className="heroContainer h-screen">
-                    <h1>Bridging Logic and Aesthetics. Fullstack in Action</h1>
+import { useState } from "react";
+import FluidCanvas from "./UI/fluidCanvas";
+import HeroContent from "./UI/heroContent";
+import ParallaxBackground from "./UI/paralax";
 
-                    <Canvas id="canvas" camera={{position:[0,2,5],fov:50,near:0.1,far:100}} gl={{antialias:true}} dpr={[1,2]}>
-
-                        <OrbitControls enableZoom={false}/>
-                           <Suspense fallback={<Loading/>}>
-                        <ComputerSetup scale={0.3} position={[0,0,0]}/>
-                        <Lighting/>
-                        </Suspense>
-                    </Canvas>
-
-                </div> */}
-                    
-                        <HeroText/>
-                    {/* <ParalaxBackground/> */}
-                    <FluidCanvas/>
-                   
+const Hero = ({ onLoad }: { onLoad: () => void }) => {
 
 
-        </section>
-     );
-}
+  return (
+    <section id="hero" className="relative">
+      <ParallaxBackground overlay={(progress,isMute,setIsMute) => <HeroContent progress={progress} isMute={isMute} setIsMute={setIsMute} />} >
+        <FluidCanvas onLoad={onLoad} />
+      </ParallaxBackground>
+    </section>
+  );
+};
 
 export default Hero;

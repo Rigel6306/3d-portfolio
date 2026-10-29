@@ -79,8 +79,9 @@ const About = () => {
         {/* Intro */}
         <motion.div className="bento-card bento-intro flex flex-col justify-end items-start h-60 md:h-full row-span-2 md:col-span-3 relative overflow-hidden p-6 text-white">
 
-          <div className="pointer-events-none absolute -top-24 -left-16 h-56 w-56 rounded-full bg-[#3715807a] blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-24 -right-16 h-56 w-56 rounded-full bg-[#3715807a] blur-3xl" />
+          
+          <div className="pointer-events-none absolute -top-24 -left-16 h-56 w-56 rounded-full bg-[#8d8d977a] blur-3xl" />
+          
 
           <div className="imgContainer absolute h-full w-full top-0 left-0">
             <img
@@ -105,13 +106,14 @@ const About = () => {
            <motion.div
           whileHover={{ y: -4 }}
           transition={{ duration: 0.2 }}
-          className="bento-card bento-focus row-span-1 md:col-span-3 min-h-[120px]  relative overflow-hidden p-6 flex flex-col justify-between border border-white/10 bg-[#16171a] rounded-2xl group shadow-sm hover:shadow-md transition-all"
+          className="bento-card bento-focus row-span-1 md:col-span-3 min-h-[120px]  relative overflow-hidden p-6 flex flex-col justify-between border border-white/10 bg-[#9daddf] rounded-2xl group shadow-sm hover:shadow-md transition-all"
         >
 
 
           {/* Top Section: Header & Status Badge */}
-          <div className="pointer-events-none absolute -top-24 -left-16 h-56 w-56 rounded-full bg-[#3715807a] blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-24 -right-16 h-56 w-56 rounded-full bg-[#3715807a] blur-3xl" />
+         
+          <div className="pointer-events-none absolute -top-24 -left-16 h-56 w-56 rounded-full bg-[#010101ae] blur-3xl" />
+       
           <div>
             <div className="flex items-center justify-between gap-2">
 
@@ -153,7 +155,8 @@ const About = () => {
           className="bento-card bento-resume flex flex-col items-center justify-center gap-3 row-span-1 md:col-span-1 h-60 md:h-full relative overflow-hidden p-6 text-white cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
 
-          <div className="pointer-events-none absolute -top-24 -left-16 h-56 w-56 rounded-full bg-[#3715807a] blur-3xl" />
+         
+          <div className="pointer-events-none absolute -top-24 -left-16 h-56 w-56 rounded-full bg-[#4545467a] blur-3xl" />
 
           <svg
             width="28"
@@ -177,6 +180,8 @@ const About = () => {
 
         {/* Location */}
         <div className="bento-card bento-location flex items-start row-span-1 md:col-span-2 h-60 md:h-full relative overflow-hidden p-6">
+          
+          <div className="pointer-events-none absolute -top-24 -left-16 h-56 w-56 rounded-full bg-[#050505f6] blur-3xl" />
           <div className="subText z-10">
             <p className="text-2xl font-extrabold">Based in Earth</p>
             <p className="mt-2 text-sm text-(--ink)/70">Available for every time zones. whenever, wherever.</p>
@@ -192,11 +197,12 @@ const About = () => {
      
 <motion.div
           ref={constraintRef}
-          className="bento-card bento-toolkit select-none row-span-1 md:col-span-4 h-60 md:h-full relative overflow-hidden p-6 flex flex-col gap-4"
+          className="  bento-card bento-toolkit select-none row-span-1 md:col-span-4 h-60 md:h-full relative overflow-hidden p-6 flex flex-col gap-4"
         >
 
-          <div className="pointer-events-none absolute -top-24 -left-16 h-56 w-56 rounded-full bg-[#3715807a] blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-24 -right-16 h-56 w-56 rounded-full bg-[#3715807a] blur-3xl" />
+          
+          <div className="pointer-events-none absolute -top-24 -left-16 h-56 w-56 rounded-full bg-[#4545467a] blur-3xl" />
+         
           <div>
 
             <p className="text-2xl font-extrabold text-(--ink)">My territory</p>
@@ -228,7 +234,8 @@ const About = () => {
         </motion.div>
         <motion.div className="bento-card bento-contact row-span-1 md:col-span-2 h-auto min-h-[240px] relative overflow-hidden p-6 text-white flex flex-col justify-between">
           {/* subtle ambient accent, kept quiet so it doesn't compete with the content */}
-          <div className="pointer-events-none absolute -top-24 -right-16 h-56 w-56 rounded-full bg-emerald-400/10 blur-3xl" />
+          
+          <div className="pointer-events-none absolute -top-24 -left-16 h-56 w-56 rounded-full bg-[#4545467a] blur-3xl" />
 
           <div className="relative flex flex-col items-center justify-center">
             <div className="flex items-start justify-between gap-3">

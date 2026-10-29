@@ -1,61 +1,83 @@
 import { layoutLinks } from "constants/consts";
-import { Link } from "react-router"
+import { Link } from "react-router";
 import { useState } from "react";
-import { motion,AnimatePresence  } from 'motion/react'
+import { motion, AnimatePresence } from "motion/react";
+
+// Extracted outside to prevent unnecessary re-mounting/re-renders
+const NavLinks = ({ onLinkClick }) => (
+  <>
+    {layoutLinks.map(({ name, href }) => (
+      <div 
+        key={name} 
+        className="navLink text-center font-semibold sm:flex text-sm sm:text-base"
+      >
+        <Link 
+          to={href} 
+          aria-label={`Go to ${name}`}
+          onClick={onLinkClick}
+        >
+          {name}
+        </Link>
+      </div>
+    ))}
+  </>
+);
+
 const RootLayout = () => {
+  const [toggleMenu, setToggleMenu] = useState(false); // Default to false (closed) is standard practice
 
-    const [togleMenu, setTogleMenu] = useState(true);
+  const handleToggle = () => setToggleMenu((prev) => !prev);
+  const closeMenu = () => setToggleMenu(false);
 
-    const Nav = () => {
-        return (<>
-            {
-                layoutLinks.map(({ name, href }) => (
-                    <div key={name} className="navLink pb-3 sm:pb-5 text-center font-semibold sm:flex text-sm sm:text-base ">
-                        <Link key={name} to={href} aria-label={`Go to ${name}`}>{name}</Link>
-                    </div>
+  return (
+    <header className="rootLayoutContainer flex items-center justify-between px-6 py-4 ">
+      
+      {/* Brand Logo / Name */}
+      <div className="logo text-xs sm:text-base font-bold tracking-tight">
+        <Link to="/" aria-label="Charitha Iravana home">
+          <h1>Charitha Iravana</h1>
+        </Link>
+      </div>
 
-                ))
-            }
-        </>)
-    }
+      {/* Desktop Navigation */}
+      <nav className="links hidden sm:flex items-center gap-6">
+        <NavLinks />
+      </nav>
 
-    return (
-        <>
+      {/* Mobile Menu Toggle Button */}
+      <button 
+        onClick={handleToggle} 
+        className="sm:hidden p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" 
+        aria-expanded={toggleMenu} 
+        aria-label={toggleMenu ? "Close navigation menu" : "Open navigation menu"}
+      >
+        <img 
+          src={toggleMenu ? 'close.png' : 'menu.png'} 
+          alt="" 
+          className="w-6 h-6 select-none"
+        />
+      </button>
 
-
-            <div className="rootLayoutContainer w-full  ">
-
-                <div className="logo pb-2 sm:pb-5 text-xs sm:text-base">
-                    <h1 aria-label="Charitha Iravana home">Charitha Iravana<span>.</span></h1>
-                </div>
-                <div className="links ">
-                    <Nav />
-                </div>
-
-                <button onClick={() => setTogleMenu(!togleMenu)} className="sm:hidden" aria-expanded={!togleMenu} aria-label={togleMenu ? "Open navigation" : "Close navigation"}>
-                    <img src={togleMenu ? 'menu.png' : 'close.png'} alt="menu" />
-                </button>
-
+      {/* Mobile Dropdown Navigation */}
+      <AnimatePresence>
+        {toggleMenu && (
+          <motion.nav
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="mobileNav absolute top-full left-0 w-full bg-background border-b border-border/40 shadow-xl block overflow-y-auto text-center sm:hidden pt-6 pb-8"
+            style={{ maxHeight: 'calc(100vh - 4rem)' }}
+          >
+            <div className="flex flex-col gap-4">
+              <NavLinks onLinkClick={closeMenu} />
             </div>
-            <AnimatePresence>
-            {!togleMenu &&
-             <motion.div
-
-                initial={{opacity:0,x:-10}}
-                animate={{opacity:1,x:0}}
-                style={{maxHeight:'100vh'}}
-                transition={{duration:0.3}}
-                 exit={{ opacity: 0 }}
-            className="mobileNav block overflow-y-auto text-center sm:hidden pt-20 pb-5  ">
-                <div className="nav pb-5">
-
-                    <Nav />
-
-                </div>
-            </motion.div>}
-            </AnimatePresence>
-        </>
-    );
-}
+          </motion.nav>
+        )}
+      </AnimatePresence>
+      
+    </header>
+  );
+};
 
 export default RootLayout;

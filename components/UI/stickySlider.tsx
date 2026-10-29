@@ -3,6 +3,7 @@ import About from "components/about"
 import { motion, useScroll, useTransform } from 'framer-motion'
 import StickyCards from "./stickyCards"
 import '../../app/styles/parallax.css'
+import ProjectShowcase from "./projectSchowcase"
 
 const IMG_PADDING = 42
 
@@ -10,7 +11,7 @@ export const TextParallaxContentContainer = () => {
     // Static tree: built once so scroll-unrelated re-renders don't rebuild
     // About / StickyCards. Animations run on motion values, not React state.
     return useMemo(() => (
-        <div className="bg-linear-to-b from-[#060606fe] via-[#5656a0c7] to-[#0000]">
+        <div className="bg-linear-to-b from-[#060606fe] via-[#141716c7] to-[#0000]">
             <TextParallaxContent
                 img={'/parallax1.jpg'}
                 subHeading={"Hello there, delightful essence"}
@@ -29,8 +30,8 @@ export const TextParallaxContentContainer = () => {
                 subHeading={"I do witchery in"}
                 heading={"Web and Mobile Development"}
             >
-                <div className="servicesSection   h-[600vh]  ">
-                    <StickyCards />
+                <div className="servicesSection   h-[400vh]  ">
+                    <ProjectShowcase/>
                 </div>
             </TextParallaxContent>
 

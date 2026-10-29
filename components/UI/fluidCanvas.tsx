@@ -6,7 +6,7 @@ import {
   vertexShader,
   fluidFragmentShader,
   displayFragmentShader,
-} from "../../utils/shaders.";
+} from "../../utils/shaders";
 
 export interface FluidCanvasProps {
   /** Image shown at rest. */
@@ -18,6 +18,7 @@ export interface FluidCanvasProps {
   /** How long ink lingers (0.9 fast fade → 0.999 very slow). */
   persistence?: number;
   className?: string;
+  onLoad?: () => void;
 }
 
 const SIM_SIZE = 512;
@@ -40,17 +41,21 @@ const createPlaceholder = () => {
 };
 
 const FluidCanvas = ({
-  topImage = "/laptop2.jpg",
-  bottomImage = "/img2.jpg",
+  topImage = "/paralax2/castle.jpg",
+  bottomImage = "/paralax2/toothlessGoodbye.jpg",
   brushSize = 0.07,
   persistence = 0.985,
   className,
+  onLoad,
 }: FluidCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Read every frame, so tuning these never recreates the WebGL context.
   const settings = useRef({ brushSize, persistence });
   settings.current = { brushSize, persistence };
+
+
+  
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -146,6 +151,7 @@ const FluidCanvas = ({
     // ── Images ──────────────────────────────────────────────────
     let disposed = false;
     let loaded = 0;
+    let hasReportedLoad = false;
     const ownedTextures: THREE.Texture[] = [];
 
     const loadImage = (
@@ -179,6 +185,12 @@ const FluidCanvas = ({
         displayMaterial.uniforms[textureKey].value = tex;
         displayMaterial.uniforms[sizeKey].value.set(source.width, source.height);
 
+        loaded += 1;
+        if (reduceMotion) renderFrame(0);
+      };
+      img.onerror = (error) => {
+        if (disposed) return;
+        console.error(`Failed to load fluid canvas image: ${url}`, error);
         loaded += 1;
         if (reduceMotion) renderFrame(0);
       };
@@ -218,6 +230,11 @@ const FluidCanvas = ({
       u.uFluid.value = readTarget.texture;
       u.uTime.value = time;
       renderer.render(scene, camera);
+
+      if (loaded === 2 && !hasReportedLoad) {
+        hasReportedLoad = true;
+        onLoad?.();
+      }
     };
 
     let last = performance.now();
@@ -295,7 +312,7 @@ const FluidCanvas = ({
       // No forceContextLoss(): StrictMode remounts onto the same <canvas>.
       renderer.dispose();
     };
-  }, [topImage, bottomImage]);
+  }, [topImage, bottomImage, onLoad]);
 
   return (
     <canvas
