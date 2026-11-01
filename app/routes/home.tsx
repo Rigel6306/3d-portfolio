@@ -15,7 +15,13 @@ const Hero = lazy(loadHero);
 const TextParallaxContentContainer = lazy(loadStickySlider);
 
 const MIN_LOADER_DURATION_MS = 2500;
-const LENIS_OPTIONS = { lerp: 0.8, duration: 4.5, smoothWheel: true };
+const LENIS_OPTIONS = {
+
+  lerp: 0.07,             // Lower = smoother and heavier (default is 0.1)
+  smoothWheel: true,     // Keeps mouse wheel scrolling butter-smooth
+  syncTouch: true,       // Improves consistency on trackpads and touch devices
+  // duration and easing are omitted here to let lerp handle the natural momentum
+};
 
 function PortfolioLoader({
   progress,

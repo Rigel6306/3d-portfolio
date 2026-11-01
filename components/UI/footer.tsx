@@ -28,6 +28,13 @@ const COPY = {
     dragon: "/paralax2/toothless.png",
 };
 
+/** Night-sky picture that sits behind every parallax layer. Put the file in your public folder. */
+const BACKGROUND = {
+    src: "/footer/thunderstorm-village.jpg",
+    /** Which part of the picture stays visible when the screen is cropped (x y). */
+    focus: "68% 40%",
+};
+
 /** How much scroll the closing scene gets, in large-viewport heights. */
 const SCENE_HEIGHT = 300;
 
@@ -183,6 +190,12 @@ const Scene = ({ progress }: { progress: MotionValue<number> }) => {
     const mistX = useTransform(progress, [0, 1], ["-6%", "6%"]);
     const mistXReverse = useTransform(progress, [0, 1], ["5%", "-5%"]);
 
+    // Backdrop picture: fades up out of the dark and slowly settles (zoom out + drift).
+    // Scale always stays ahead of the drift, so the edges never show.
+    const bgOpacity = useTransform(progress, [0, 0.3], [0, 1]);
+    const bgScale = useTransform(progress, [0, 0.6], [1.2, 1.06]);
+    const bgY = useTransform(progress, [0, 0.6], ["-4%", "0%"]);
+
 
     const flight = useTransform(progress, [0.06, 0.58], [0, 1]);
 
@@ -209,6 +222,25 @@ const Scene = ({ progress }: { progress: MotionValue<number> }) => {
 
     return (
         <div className="absolute inset-0 overflow-hidden bg-[linear-gradient(to_bottom,#04060b,#0a1224_55%,#16223c)]">
+            {/* Backdrop picture: the bottom-most layer, everything else parallaxes in front of it.
+                The gradient on the wrapper above is the fallback colour while it loads. */}
+            <Depth mx={mx} my={my} dx={-3} dy={-2} className="pointer-events-none absolute inset-0">
+                <motion.div
+                    aria-hidden="true"
+                    className="absolute inset-0"
+                    style={{ opacity: bgOpacity, scale: bgScale, y: bgY }}
+                >
+                    <img
+                        src={BACKGROUND.src}
+                        alt=""
+                        decoding="async"
+                        draggable={false}
+                        className="h-full w-full select-none object-cover"
+                        style={{ objectPosition: BACKGROUND.focus }}
+                    />
+                </motion.div>
+            </Depth>
+
             {/* Twinkle animation (switched off for reduced motion) */}
             <style>{`
         @keyframes footer-twinkle { 0%,100% { opacity: .25 } 50% { opacity: 1 } }

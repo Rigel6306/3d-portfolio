@@ -93,7 +93,7 @@ const HeroContent = ({ progress, isMute,setIsMute }: { progress: MotionValue<num
 
   return (
     <>
-      <Nav />
+    
 
       {/* Stage 1 — over the mountain */}
       <motion.div

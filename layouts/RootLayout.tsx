@@ -9,7 +9,7 @@ const NavLinks = ({ onLinkClick }) => (
     {layoutLinks.map(({ name, href }) => (
       <div 
         key={name} 
-        className="navLink text-center font-semibold sm:flex text-sm sm:text-base"
+        className="navLink text-center font-light sm:flex text-sm sm:text-base"
       >
         <Link 
           to={href} 
@@ -30,24 +30,20 @@ const RootLayout = () => {
   const closeMenu = () => setToggleMenu(false);
 
   return (
-    <header className="rootLayoutContainer flex items-center justify-between px-6 py-4 ">
+    <header className="rootLayoutContainer flex items-center justify-end sm:justify-center px-6 py-4  sm:backdrop-blur-sm  ">
       
       {/* Brand Logo / Name */}
-      <div className="logo text-xs sm:text-base font-bold tracking-tight">
-        <Link to="/" aria-label="Charitha Iravana home">
-          <h1>Charitha Iravana</h1>
-        </Link>
-      </div>
+    
 
       {/* Desktop Navigation */}
       <nav className="links hidden sm:flex items-center gap-6">
-        <NavLinks />
+        <NavLinks onLinkClick={undefined} />
       </nav>
 
       {/* Mobile Menu Toggle Button */}
       <button 
         onClick={handleToggle} 
-        className="sm:hidden p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" 
+        className="sm:hidden p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary " 
         aria-expanded={toggleMenu} 
         aria-label={toggleMenu ? "Close navigation menu" : "Open navigation menu"}
       >
@@ -66,10 +62,10 @@ const RootLayout = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2, ease: "easeInOut" }}
-            className="mobileNav absolute top-full left-0 w-full bg-background border-b border-border/40 shadow-xl block overflow-y-auto text-center sm:hidden pt-6 pb-8"
+          className="bg-[#00000033] backdrop-blur-2xl absolute top-full left-0 w-full block overflow-y-auto text-center sm:hidden pt-6 pb-8"
             style={{ maxHeight: 'calc(100vh - 4rem)' }}
           >
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 ">
               <NavLinks onLinkClick={closeMenu} />
             </div>
           </motion.nav>
