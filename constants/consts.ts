@@ -156,21 +156,21 @@ export const PROJECTS: Project[] = [
     repo: "https://github.com/Rigel6306/developer.git",
   },
 
-    {
-    id: "trip-planner",
-    title: "AI Trip Planner",
-    kind: "Web app",
-    description: "A smart travel planning web application that leverages AI to generate complete trip itineraries in seconds. Simply enter your starting point, destination, and number of travel days, and receive a fully customizable travel plan tailored to your preferences.",
-    highlights: ["AI Smart planning", "Fully customizable plan","Instent planning"],
-    stack: ["Next.js", "TypeScript","Tailwind","ai-sdk","Firebase"],
-    device: "web",
-    image: "/projects/",
-    images: ["/projects/trip-planer/trip-planer1.png","/projects/trip-planer/trip-planer2.png","/projects/trip-planer/trip-planer3.png","/projects/trip-planer/trip-planer4.png", ],
-    accent: "#c084fc",
-    host: "www.tripplanner.com",
-    href: "https://planer-trip-kghyqxj59-pisso.vercel.app/",
-      repo: "https://github.com/Rigel6306/planer-trip.git",
-  },
+  //   {
+  //   id: "trip-planner",
+  //   title: "AI Trip Planner",
+  //   kind: "Web app",
+  //   description: "A smart travel planning web application that leverages AI to generate complete trip itineraries in seconds. Simply enter your starting point, destination, and number of travel days, and receive a fully customizable travel plan tailored to your preferences.",
+  //   highlights: ["AI Smart planning", "Fully customizable plan","Instent planning"],
+  //   stack: ["Next.js", "TypeScript","Tailwind","ai-sdk","Firebase"],
+  //   device: "web",
+  //   image: "/projects/",
+  //   images: ["/projects/trip-planer/trip-planer1.png","/projects/trip-planer/trip-planer2.png","/projects/trip-planer/trip-planer3.png","/projects/trip-planer/trip-planer4.png", ],
+  //   accent: "#c084fc",
+  //   host: "www.tripplanner.com",
+  //   href: "https://planer-trip-kghyqxj59-pisso.vercel.app/",
+  //     repo: "https://github.com/Rigel6306/planer-trip.git",
+  // },
 
 
 ];

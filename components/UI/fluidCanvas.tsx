@@ -41,7 +41,7 @@ const createPlaceholder = () => {
 };
 
 const FluidCanvas = ({
-  topImage = "/artMountain.jpg",
+  topImage = "/paralax2/withLightfury.jpg",
   bottomImage = "/paralax2/toothlessGoodbye.jpg",
   brushSize = 0.07,
   persistence = 0.985,
