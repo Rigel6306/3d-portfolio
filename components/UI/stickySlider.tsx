@@ -15,44 +15,10 @@ import TechStory from "./techStory";
 
 const IMG_PADDING = 42;
 
-/* ───────────────────────────────── Moods ─────────────────────────────────
- * Each chapter gets its own light, so the story moves through time as you
- * scroll: dawn -> dusk -> night, ending in the night sky of the footer.
- */
-type Mood = "dawn" | "dusk" | "night";
 
-const MOODS: Record<Mood, { tint: string; glow: string; fog: string }> = {
-  dawn: {
-    tint: "linear-gradient(to top, rgba(255,160,90,0.30), rgba(255,130,90,0.08) 45%, transparent 75%)",
-    glow: "radial-gradient(ellipse 60% 50% at 18% 100%, rgba(255,196,130,0.42), transparent 70%)",
-    fog: "rgba(255,225,190,0.16)",
-  },
-  dusk: {
-    tint: "linear-gradient(to top, rgba(120,70,160,0.38), rgba(60,50,120,0.12) 50%, transparent 80%)",
-    glow: "radial-gradient(ellipse 60% 45% at 80% 100%, rgba(255,140,110,0.34), transparent 70%)",
-    fog: "rgba(200,170,235,0.14)",
-  },
-  night: {
-    tint: "linear-gradient(to top, rgba(20,35,80,0.5), rgba(10,18,45,0.18) 55%, transparent)",
-    glow: "radial-gradient(ellipse 55% 45% at 70% 0%, rgba(150,180,255,0.28), transparent 70%)",
-    fog: "rgba(150,170,215,0.13)",
-  },
-};
-
-/** Fixed star positions (percent), so server and client always agree. */
-const STARS = Array.from({ length: 46 }, (_, i) => {
-  const r = (n: number) => {
-    const x = Math.sin(i * 12.9898 + n * 78.233) * 43758.5453;
-    return x - Math.floor(x);
-  };
-  return { x: r(1) * 100, y: r(2) * 70, s: 1 + r(3) * 1.6, o: 0.35 + r(4) * 0.65, g: i % 3 };
-});
-
-/* ───────────────────────────────── Page ───────────────────────────────── */
 
 export const TextParallaxContentContainer = () => {
-  // Static tree: built once so scroll-unrelated re-renders don't rebuild
-  // About / ProjectShowcase. Animations run on motion values, not React state.
+
   return useMemo(
     () => (
       <div className="bg-linear-to-b from-[#060606fe] via-[#141716c7] to-[#0000]">
@@ -65,7 +31,7 @@ export const TextParallaxContentContainer = () => {
         <TextParallaxContent
           img={"/parallax1.jpg"}
           chapter={"Chapter one"}
-          mood={"dawn"}
+       
           subHeading={"Get to know the developer behind the code."}
           heading={"The Story Begins!"}
         >
@@ -80,7 +46,7 @@ export const TextParallaxContentContainer = () => {
         <TextParallaxContent
           img={"/bck1.jpg"}
           chapter={"CHAPTER TWO"}
-          mood={"dusk"}
+          
           subHeading={"Transforming ambitious ideas into functional realities."}
           heading={"Digital Alchemy"}
         >
@@ -93,7 +59,7 @@ export const TextParallaxContentContainer = () => {
         <TextParallaxContent
           img={"/parallax3.jpg"}
           chapter={"The final chapter"}
-          mood={"night"}
+         
           subHeading={"The magic behind every build."}
           heading={"Weapons of Choice"}
         >
@@ -112,7 +78,7 @@ interface TextParalaxPropsType {
   subHeading: string;
   heading: string;
   chapter?: string;
-  mood?: Mood;
+
   children?: React.ReactNode;
 }
 
@@ -121,7 +87,7 @@ const TextParallaxContent = ({
   subHeading,
   heading,
   chapter,
-  mood = "dawn",
+
   children,
 }: TextParalaxPropsType) => {
   // Progress of this whole chapter passing through the screen. Shared by the
@@ -135,7 +101,7 @@ const TextParallaxContent = ({
   return (
     <div className="mt-10 w-full max-w-full overflow-clip">
       <div ref={chapterRef} className="relative h-[150vh]  p-3">
-        <StickyImage img={img} mood={mood} progress={chapterProgress} />
+        <StickyImage img={img} progress={chapterProgress} />
         <TextOverlay heading={heading} subHeading={subHeading} chapter={chapter} />
       </div>
       {children}
@@ -147,11 +113,11 @@ const TextParallaxContent = ({
 
 const StickyImage = ({
   img,
-  mood,
+
   progress,
 }: {
   img: string;
-  mood: Mood;
+
   progress: MotionValue<number>;
 }) => {
   const reduceMotion = useReducedMotion();
@@ -163,13 +129,11 @@ const StickyImage = ({
 
   // scale and opacity used the exact same mapping, so compute it once
   const scale = useTransform(scrollYProgress, [0, 1], [1, 0]);
-  const opacity = scale;
+
 
   // Depth inside the frame: the photo drifts slower than the frame, the mist faster.
   const imgY = useTransform(progress, [0, 1], reduceMotion ? ["0%", "0%"] : ["-6%", "6%"]);
-  const mistA = useTransform(progress, [0, 1], reduceMotion ? ["0%", "0%"] : ["-14%", "14%"]);
-  const mistB = useTransform(progress, [0, 1], reduceMotion ? ["0%", "0%"] : ["12%", "-12%"]);
-  const m = MOODS[mood];
+
 
   return (
     <motion.div
@@ -196,53 +160,7 @@ const StickyImage = ({
         }}
       />
 
-      {/* This chapter's light */}
-      <div aria-hidden="true" className="absolute inset-0" style={{ background: m.tint }} />
-      <div aria-hidden="true" className="absolute inset-0" style={{ background: m.glow }} />
-
-      {mood === "night" && (
-        <div aria-hidden="true" className="absolute inset-0">
-          {STARS.map((s, i) => (
-            <span
-              key={i}
-              className="chapter-star absolute rounded-full bg-[#e6eeff]"
-              style={{
-                left: `${s.x}%`,
-                top: `${s.y}%`,
-                width: s.s,
-                height: s.s,
-                opacity: s.o,
-                animationDelay: `${s.g * 1.3}s`,
-                animationDuration: `${3.5 + s.g}s`,
-              }}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Drifting mist, like the clouds in the hero */}
-      <motion.div
-        aria-hidden="true"
-        className="absolute left-[-15%] top-[55%] h-[28%] w-[80%] blur-2xl"
-        style={{ x: mistA, background: `radial-gradient(ellipse at center, ${m.fog}, transparent 70%)` }}
-      />
-      <motion.div
-        aria-hidden="true"
-        className="absolute right-[-15%] top-[35%] h-[24%] w-[70%] blur-2xl"
-        style={{ x: mistB, background: `radial-gradient(ellipse at center, ${m.fog}, transparent 70%)` }}
-      />
-
-      {/* Original dark overlay (fades as the frame shrinks) */}
-      <motion.div
-        style={{ opacity }}
-        className="absolute inset-0 rounded-3xl bg-neutral-950/60"
-      />
-
-      {/* Soft vignette keeps the centre text readable */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_50%,rgba(0,0,0,0.5)_100%)]"
-      />
+  
     </motion.div>
   );
 };

@@ -17,15 +17,19 @@ export interface FluidCanvasProps {
   brushSize?: number;
   /** How long ink lingers (0.9 fast fade → 0.999 very slow). */
   persistence?: number;
+  /** When false the render loop is paused (context stays alive). */
+  active?: boolean;
   className?: string;
   onLoad?: () => void;
 }
 
-const SIM_SIZE = 512;
+const SIM_SIZE_DESKTOP = 512;
+const SIM_SIZE_COARSE = 256; // phones / tablets
 const MAX_DPR = 2;
+const MAX_DPR_COARSE = 1;
 
-const createTarget = () =>
-  new THREE.WebGLRenderTarget(SIM_SIZE, SIM_SIZE, {
+const createTarget = (size: number) =>
+  new THREE.WebGLRenderTarget(size, size, {
     minFilter: THREE.LinearFilter,
     magFilter: THREE.LinearFilter,
     format: THREE.RGBAFormat,
@@ -45,6 +49,7 @@ const FluidCanvas = ({
   bottomImage = "/paralax2/toothlessGoodbye.jpg",
   brushSize = 0.07,
   persistence = 0.985,
+  active = true,
   className,
   onLoad,
 }: FluidCanvasProps) => {
@@ -54,8 +59,15 @@ const FluidCanvas = ({
   const settings = useRef({ brushSize, persistence });
   settings.current = { brushSize, persistence };
 
+  // Keep the latest onLoad without making it an effect dependency
+  // (an unmemoized callback would otherwise rebuild the whole renderer).
+  const onLoadRef = useRef(onLoad);
+  onLoadRef.current = onLoad;
 
-  
+  // Lets the "active" prop start/stop the loop owned by the main effect.
+  const activeRef = useRef(active);
+  activeRef.current = active;
+  const syncRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -64,6 +76,9 @@ const FluidCanvas = ({
     const reduceMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    const simSize = coarse ? SIM_SIZE_COARSE : SIM_SIZE_DESKTOP;
+    const maxDpr = coarse ? MAX_DPR_COARSE : MAX_DPR;
 
     const renderer = new THREE.WebGLRenderer({
       canvas,
@@ -74,11 +89,11 @@ const FluidCanvas = ({
 
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
     const geometry = new THREE.PlaneGeometry(2, 2);
-    const texel = new THREE.Vector2(1 / SIM_SIZE, 1 / SIM_SIZE);
+    const texel = new THREE.Vector2(1 / simSize, 1 / simSize);
 
     // ── Simulation ──────────────────────────────────────────────
-    let readTarget = createTarget();
-    let writeTarget = createTarget();
+    let readTarget = createTarget(simSize);
+    let writeTarget = createTarget(simSize);
 
     const pointer = new THREE.Vector2(0.5, 0.5); // smoothed
     const prevPointer = new THREE.Vector2(0.5, 0.5);
@@ -141,7 +156,7 @@ const FluidCanvas = ({
     const resize = () => {
       const w = Math.max(1, canvas.clientWidth);
       const h = Math.max(1, canvas.clientHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_DPR));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxDpr));
       renderer.setSize(w, h, false);
       displayMaterial.uniforms.uResolution.value.set(w, h);
       simMaterial.uniforms.uAspect.value = w / h;
@@ -164,7 +179,9 @@ const FluidCanvas = ({
       img.onload = () => {
         if (disposed) return;
 
-        const max = renderer.capabilities.maxTextureSize;
+        // Phones: cap texture size so huge JPGs don't eat GPU memory.
+        const cap = coarse ? 2048 : renderer.capabilities.maxTextureSize;
+        const max = Math.min(cap, renderer.capabilities.maxTextureSize);
         const k = Math.min(1, max / Math.max(img.width, img.height));
         let source: HTMLImageElement | HTMLCanvasElement = img;
         if (k < 1) {
@@ -187,12 +204,14 @@ const FluidCanvas = ({
 
         loaded += 1;
         if (reduceMotion) renderFrame(0);
+        reportLoadIfReady();
       };
       img.onerror = (error) => {
         if (disposed) return;
         console.error(`Failed to load fluid canvas image: ${url}`, error);
         loaded += 1;
         if (reduceMotion) renderFrame(0);
+        reportLoadIfReady();
       };
       img.src = url;
     };
@@ -207,8 +226,6 @@ const FluidCanvas = ({
       const s = settings.current;
       time += dt;
 
-      // Smooth the pointer so strokes are fluid and frame-rate independent;
-      // the stroke decays to zero naturally when the cursor stops.
       prevPointer.copy(pointer);
       pointer.lerp(target, 1 - Math.exp(-dt * 28));
 
@@ -230,11 +247,16 @@ const FluidCanvas = ({
       u.uFluid.value = readTarget.texture;
       u.uTime.value = time;
       renderer.render(scene, camera);
+    };
 
-      if (loaded === 2 && !hasReportedLoad) {
-        hasReportedLoad = true;
-        onLoad?.();
-      }
+    // Report "ready" as soon as both images are loaded, independent of the
+    // render loop (which stays paused until the canvas is revealed).
+    const reportLoadIfReady = () => {
+      if (loaded !== 2 || hasReportedLoad || disposed) return;
+      hasReportedLoad = true;
+      // Draw one frame so textures are uploaded to the GPU before reveal.
+      if (!reduceMotion) renderFrame(0);
+      onLoadRef.current?.();
     };
 
     let last = performance.now();
@@ -249,6 +271,23 @@ const FluidCanvas = ({
     };
     const stop = () => renderer.setAnimationLoop(null);
 
+    // ── Run / pause control ─────────────────────────────────────
+    // Loop runs only when the canvas is on screen AND the parent says active.
+    let inView = true;
+    let running = false;
+    const sync = () => {
+      if (reduceMotion || disposed) return;
+      const shouldRun = inView && activeRef.current;
+      if (shouldRun && !running) {
+        running = true;
+        start();
+      } else if (!shouldRun && running) {
+        running = false;
+        stop();
+      }
+    };
+    syncRef.current = sync;
+
     // ── Events ──────────────────────────────────────────────────
     const onPointerMove = (e: PointerEvent) => {
       const rect = canvas.getBoundingClientRect();
@@ -261,7 +300,6 @@ const FluidCanvas = ({
       }
       target.set(x, y);
       if (!hasPointer) {
-        // First contact: jump, don't streak from the old position.
         pointer.copy(target);
         prevPointer.copy(target);
         hasPointer = true;
@@ -276,9 +314,8 @@ const FluidCanvas = ({
 
     const visibilityObserver = new IntersectionObserver(
       ([entry]) => {
-        if (reduceMotion) return;
-        if (entry.isIntersecting) start();
-        else stop();
+        inView = entry.isIntersecting;
+        sync();
       },
       { threshold: 0.05 }
     );
@@ -295,7 +332,9 @@ const FluidCanvas = ({
 
     return () => {
       disposed = true;
+      running = false;
       stop();
+      syncRef.current = () => {};
       resizeObserver.disconnect();
       visibilityObserver.disconnect();
       canvas.removeEventListener("webglcontextlost", onContextLost);
@@ -312,7 +351,13 @@ const FluidCanvas = ({
       // No forceContextLoss(): StrictMode remounts onto the same <canvas>.
       renderer.dispose();
     };
-  }, [topImage, bottomImage, onLoad]);
+    // onLoad intentionally NOT a dependency (kept in onLoadRef).
+  }, [topImage, bottomImage]);
+
+  // Start / pause when the parent toggles `active`.
+  useEffect(() => {
+    syncRef.current();
+  }, [active]);
 
   return (
     <canvas
