@@ -190,7 +190,7 @@ const ParallaxBackground = ({ children, overlay }: ParallaxBackgroundProps) => {
           <motion.div
             className={`${IMG} bg-bottom`}
             style={{
-              backgroundImage: "url(/paralax2/mountain1.jpeg)",
+              backgroundImage: "url(/paralax2/mountain1.jpg)",
               backgroundSize: "cover",
               willChange: "transform, opacity",
               opacity: mountainOpacity,
