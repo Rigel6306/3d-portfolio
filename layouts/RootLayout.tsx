@@ -2,22 +2,33 @@ import { layoutLinks } from "constants/consts";
 import { Link } from "react-router";
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-
+import { useReducedMotion } from "motion/react";
 // Extracted outside to prevent unnecessary re-mounting/re-renders
+
+const toStart = (href) => {
+  // Remove the '#' if it exists, or fallback to 'hero'
+  const targetId = href.startsWith("#") ? href.substring(1) : href;
+  document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth" });
+};
+
 const NavLinks = ({ onLinkClick }) => (
   <>
     {layoutLinks.map(({ name, href }) => (
       <div 
         key={name} 
-        className="navLink text-center font-light sm:flex text-sm sm:text-base"
+        className="navLink text-center font-light sm:flex text-sm sm:text-lg tracking-widest"
       >
-        <Link 
-          to={href} 
+        {/* Change <Link> to a standard <a> tag or button */}
+        <a 
+          href={href} 
           aria-label={`Go to ${name}`}
-          onClick={onLinkClick}
+          onClick={(e) => {
+            e.preventDefault(); // Stop default jump
+            onLinkClick(href);
+          }}
         >
           {name}
-        </Link>
+        </a>
       </div>
     ))}
   </>
@@ -37,7 +48,7 @@ const RootLayout = () => {
 
       {/* Desktop Navigation */}
       <nav className="links hidden sm:flex items-center gap-6">
-        <NavLinks onLinkClick={undefined} />
+        <NavLinks onLinkClick={toStart} />
       </nav>
 
       {/* Mobile Menu Toggle Button */}

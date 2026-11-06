@@ -1,19 +1,19 @@
 export const layoutLinks = [
   {
     name: "Home",
-    href: '/'
+    href: '#hero'
   },
   {
-    name: "Projects",
-    href: '/projects'
+    name: "About",
+    href: '#about'
   },
   {
-    name: "Profile",
-    href: '/profile'
+    name: "Work",
+    href: '#work'
   },
   {
     name: "Contacts",
-    href: "/contacts"
+    href: "#contact"
   }
 ]
 export type details = {
