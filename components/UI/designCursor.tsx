@@ -1,35 +1,18 @@
-"use client";
-
 import React, { useEffect, useRef } from "react";
-
-/**
- * <DesignCursor>
- *
- * Wrap anything (text, cards, a whole hero section) and it will look like a
- * designer is building it live: a named cursor glides around, drags out
- * wireframe boxes with selection handles and size tags around every element
- * inside, and each element is revealed as its box is "drawn".
- *
- * Zero dependencies. Respects prefers-reduced-motion.
- */
-
 export interface DesignCursorProps {
   children: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
-  /** Cursor + wireframe colour (any CSS colour). */
+  /** Primary colour (any CSS colour). Used as the first stop of the default aurora palette. */
   color?: string;
+  /** Optional full palette (2+ colours, any CSS colours). Overrides the default aurora palette. */
+  colors?: string[];
   /** Name tag shown next to the cursor. */
   label?: string;
   /** 1 = normal, 2 = twice as fast. */
   speed?: number;
   /** Replay the animation forever while in view. Default false. */
   loop?: boolean;
-  /**
-   * Play again every time the section scrolls back into view
-   * (content is hidden again when it leaves). Default true.
-   * Set false to play only once, then stay revealed.
-   */
   replay?: boolean;
   /** Pause between loops (ms). */
   loopDelay?: number;
@@ -39,13 +22,6 @@ export interface DesignCursorProps {
   maxDepth?: number;
   /** Safety cap on the number of boxes drawn per run (default 14, or 80 with `selector`). */
   maxSteps?: number;
-  /**
-   * Choreography mode. CSS selector of the elements to draw, in document
-   * order, e.g. "[data-dc]". Tag elements with:
-   *   data-dc="card"   big surface: slower, full handles + size tag
-   *   data-dc          detail: faster
-   *   data-dc-name="x" label shown on the selection tag
-   */
   selector?: string;
   /** Elements matching this are drawn very fast with no tags (grids of icons). */
   quickSelector?: string;
@@ -55,112 +31,18 @@ export interface DesignCursorProps {
 
 type El = HTMLElement | SVGElement;
 type Ctl = { cancelled: boolean };
-
 const CANCEL = Symbol("cancel");
-
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
-const easeInOut = (t: number) =>
-  t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+/** smootherstep: zero velocity AND acceleration at both ends, so motion feels hand-guided */
+const easeInOut = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
 const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
 
-const sleep = (ms: number, ctl: Ctl) =>
-  new Promise<void>((resolve, reject) => {
-    setTimeout(() => (ctl.cancelled ? reject(CANCEL) : resolve()), ms);
-  });
-
-const tween = (ms: number, ctl: Ctl, fn: (t: number) => void) =>
-  new Promise<void>((resolve, reject) => {
-    const t0 = performance.now();
-    const frame = (now: number) => {
-      if (ctl.cancelled) {
-        reject(CANCEL);
-        return;
-      }
-      const t = Math.min(1, (now - t0) / Math.max(1, ms));
-      fn(t);
-      if (t < 1) requestAnimationFrame(frame);
-      else resolve();
-    };
-    requestAnimationFrame(frame);
-  });
-
-/** Collect the elements we will "design", in document order. */
-function collect(
-  root: HTMLElement,
-  maxDepth: number,
-  maxSteps: number,
-  selector?: string
-): El[] {
-  const out: El[] = [root];
-
-  if (selector) {
-    root.querySelectorAll<El>(selector).forEach((el) => {
-      if (el === root) return;
-      const r = el.getBoundingClientRect();
-      if (r.width < 6 || r.height < 6) return;
-      out.push(el);
-    });
-    return out.slice(0, maxSteps);
-  }
-
-  const SKIP = new Set(["script", "style", "br", "wbr", "template", "noscript"]);
-
-  const walk = (parent: Element, depth: number) => {
-    if (depth > maxDepth) return;
-    for (const child of Array.from(parent.children)) {
-      if (!(child instanceof HTMLElement || child instanceof SVGSVGElement)) continue;
-      if (SKIP.has(child.tagName.toLowerCase())) continue;
-      if (getComputedStyle(child).display === "none") continue;
-      const r = child.getBoundingClientRect();
-      if (r.width < 6 || r.height < 6) continue;
-      out.push(child);
-      if (!(child instanceof SVGSVGElement)) walk(child, depth + 1);
-    }
-  };
-
-  walk(root, 1);
-  return out.slice(0, maxSteps);
-}
-
-type Kind = "frame" | "card" | "item" | "quick";
-
-/** Timing per kind, in ms: [min, max] for cursor travel and for the drag. */
-const PROFILE: Record<
-  Kind,
-  { travel: [number, number]; draw: [number, number]; hold: number; settle: number; chrome: boolean }
-> = {
-  frame: { travel: [220, 420], draw: [480, 720], hold: 80, settle: 100, chrome: true },
-  card: { travel: [190, 360], draw: [250, 420], hold: 40, settle: 60, chrome: true },
-  item: { travel: [95, 200], draw: [120, 220], hold: 0, settle: 40, chrome: true },
-  quick: { travel: [40, 70], draw: [50, 80], hold: 0, settle: 20, chrome: false },
-};
-
-/** Element rect clipped by any overflow-hidden ancestor (so a globe that
- *  spills out of its card is drawn only where it is actually visible). */
-function visibleRect(el: El, stop: Element) {
-  const r = el.getBoundingClientRect();
-  let left = r.left;
-  let top = r.top;
-  let right = r.right;
-  let bottom = r.bottom;
-  for (let p = el.parentElement; p && p !== stop; p = p.parentElement) {
-    const cs = getComputedStyle(p);
-    if (cs.overflowX !== "visible" || cs.overflowY !== "visible") {
-      const pr = p.getBoundingClientRect();
-      left = Math.max(left, pr.left);
-      top = Math.max(top, pr.top);
-      right = Math.min(right, pr.right);
-      bottom = Math.min(bottom, pr.bottom);
-    }
-  }
-  return { left, top, width: Math.max(0, right - left), height: Math.max(0, bottom - top) };
-}
-
-export function DesignCursor({
+export const DesignCursor = ({
   children,
   className,
   style,
   color = "#7c5cff",
+  colors,
   label = "Designer",
   speed = 1,
   loop = false,
@@ -172,24 +54,53 @@ export function DesignCursor({
   selector,
   quickSelector,
   trigger = "inView",
-}: DesignCursorProps) {
+}: DesignCursorProps) => {
   const rootRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+
+  /* string key so a new array literal each render doesn't restart the effect */
+  const paletteKey = colors && colors.length > 1 ? colors.join("|") : "";
 
   useEffect(() => {
     const root = rootRef.current;
     const content = contentRef.current;
     const overlay = overlayRef.current;
     if (!root || !content || !overlay) return;
-    /* Content starts hidden (inline style) so nothing flashes before the
-       animation begins. Reduced motion: just show it. */
+
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       content.style.visibility = "visible";
       return;
     }
 
-    /* original inline `visibility` of every element we hide */
+    const activeAnimations = new Set<Animation>();
+    const trackAnim = (anim: Animation) => {
+      activeAnimations.add(anim);
+      anim.onfinish = () => {
+        anim.onfinish = null;
+        activeAnimations.delete(anim);
+      };
+      anim.oncancel = () => {
+        anim.oncancel = null;
+        activeAnimations.delete(anim);
+      };
+      return anim;
+    };
+
+    const activeTimeouts = new Set<NodeJS.Timeout>();
+    const safeSetTimeout = (fn: () => void, ms: number, ctl: Ctl) =>
+      new Promise<void>((resolve, reject) => {
+        const id = setTimeout(() => {
+          activeTimeouts.delete(id);
+          if (ctl.cancelled) reject(CANCEL);
+          else {
+            fn();
+            resolve();
+          }
+        }, ms);
+        activeTimeouts.add(id);
+      });
+
     const hidden = new Map<El, string>();
     const restoreAll = () => {
       hidden.forEach((v, el) => {
@@ -197,50 +108,276 @@ export function DesignCursor({
       });
       hidden.clear();
     };
-    const clearOverlay = () => overlay.replaceChildren();
 
-    /* ---------- tiny DOM helpers ---------- */
+    /* number of dust particles currently alive (capped for performance) */
+    let live = 0;
+    const MAX_LIVE = 420;
+    const clearOverlay = () => {
+      activeAnimations.forEach((anim) => anim.cancel());
+      activeAnimations.clear();
+      activeTimeouts.forEach((id) => clearTimeout(id));
+      activeTimeouts.clear();
+      overlay.replaceChildren();
+      live = 0;
+    };
 
-    const chip = (text: string) => {
-      const s = document.createElement("span");
-      s.textContent = text;
-      Object.assign(s.style, {
+    /* ---------- palette ---------- */
+
+    const DEFAULT_REST = ["#ff5fa2", "#ffb347", "#38d5ff"];
+    const palette = paletteKey ? paletteKey.split("|") : [color, ...DEFAULT_REST];
+    const n = palette.length;
+    const P0 = palette[0];
+    const P1 = palette[1];
+    const P3 = palette[n - 1];
+    const mixc = (c: string, pct: number) => `color-mix(in srgb, ${c} ${pct}%, transparent)`;
+    const grad = (deg: number, alpha?: number) =>
+      `linear-gradient(${deg}deg, ${palette.map((c) => (alpha == null ? c : mixc(c, alpha))).join(", ")})`;
+    const conicFull = `conic-gradient(from 0deg, ${[...palette, P0].join(", ")})`;
+    /* a bright head with a fading tail: reads as a light orbiting the box */
+    const comet = `conic-gradient(from 0deg, transparent 0deg, transparent 140deg, ${palette
+      .map((c, i) => `${c} ${190 + (i / (n - 1)) * 170}deg`)
+      .join(", ")})`;
+
+    const EASE_OUT_EXPO = "cubic-bezier(.22,1,.36,1)";
+    const EASE_SOFT = "cubic-bezier(.4,0,.2,1)";
+
+    /* ---------- minimal label ---------- */
+
+    const pill = (text: string, o: { dot?: boolean; mono?: boolean } = {}) => {
+      const el = document.createElement("span");
+      Object.assign(el.style, {
         position: "absolute",
-        background: color,
-        color: "#fff",
-        font: "600 11px/1 system-ui, -apple-system, Segoe UI, sans-serif",
-        padding: "3px 6px",
+        padding: o.mono ? "3px 6px" : "3px 7px",
         borderRadius: "4px",
+        background: "rgba(16,16,28,.92)",
+        border: "1px solid rgba(255,255,255,.12)",
+        color: "#fff",
+        font: o.mono
+          ? "500 10.5px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace"
+          : "600 11px/1.2 system-ui, -apple-system, Segoe UI, sans-serif",
+        letterSpacing: ".01em",
         whiteSpace: "nowrap",
-        transition: "opacity .2s",
-      } as Partial<CSSStyleDeclaration>);
-      return s;
-    };
-
-    const pulse = (x: number, y: number) => {
-      const r = document.createElement("div");
-      Object.assign(r.style, {
-        position: "absolute",
-        left: `${x - 10}px`,
-        top: `${y - 10}px`,
-        width: "20px",
-        height: "20px",
-        borderRadius: "50%",
-        border: `2px solid ${color}`,
+        transition: "opacity .25s",
         pointerEvents: "none",
-      } as Partial<CSSStyleDeclaration>);
-      overlay.appendChild(r);
-      const a = r.animate(
-        [
-          { transform: "scale(.3)", opacity: 0.9 },
-          { transform: "scale(1.7)", opacity: 0 },
-        ],
-        { duration: 450, easing: "ease-out" }
-      );
-      a.onfinish = () => r.remove();
+      });
+      el.textContent = text;
+      return { el, text: el };
     };
 
-    const makeCursor = () => {
+    /* ---------- dust ---------- */
+
+    interface MoteOpts {
+      dx: number;
+      dy: number;
+      g: number;
+      dur: number;
+      delay?: number;
+      size: number;
+      color: string;
+      alpha: number;
+      glint?: boolean;
+      wobble?: number;
+    }
+
+    const mote = (x: number, y: number, o: MoteOpts) => {
+      if (live >= MAX_LIVE) return;
+      live++;
+      const s = o.size;
+      let el: HTMLElement;
+      if (o.glint) {
+        el = document.createElement("div");
+        Object.assign(el.style, {
+          position: "absolute",
+          left: `${x - s / 2}px`,
+          top: `${y - s / 2}px`,
+          width: `${s}px`,
+          height: `${s}px`,
+          background: `linear-gradient(135deg, #fff 0%, ${o.color} 100%)`,
+          clipPath: "polygon(50% 0%, 58% 42%, 100% 50%, 58% 58%, 50% 100%, 42% 58%, 0% 50%, 42% 42%)",
+          opacity: "0",
+          pointerEvents: "none",
+          zIndex: "2",
+          willChange: "transform, opacity",
+        });
+      } else {
+        const w = s * 2.6;
+        const h = w * (0.55 + Math.random() * 0.45);
+        el = document.createElement("div");
+        Object.assign(el.style, {
+          position: "absolute",
+          left: `${x - w / 2}px`,
+          top: `${y - h / 2}px`,
+          width: `${w}px`,
+          height: `${h}px`,
+          borderRadius: "50%",
+          background: `radial-gradient(circle, rgba(255,255,255,.95) 0%, ${o.color} 30%, ${mixc(o.color, 0)} 68%)`,
+          opacity: "0",
+          pointerEvents: "none",
+          zIndex: "2",
+          willChange: "transform, opacity",
+        });
+      }
+      overlay.appendChild(el);
+
+      const steps = 12;
+      const phase = Math.random() * Math.PI * 2;
+      const freq = 1.5 + Math.random() * 2;
+      const wob = o.wobble ?? 3;
+      const len = Math.hypot(o.dx, o.dy) || 1;
+      const nx = -o.dy / len;
+      const ny = o.dx / len;
+      const rot0 = Math.random() * 90;
+      const spinBy = (Math.random() - 0.5) * 140;
+
+      const frames = Array.from({ length: steps + 1 }, (_, k) => {
+        const t = k / steps;
+        const e = 1 - Math.pow(1 - t, 2.2);
+        const sway = Math.sin(t * Math.PI * freq + phase) * wob * t;
+        const px = o.dx * e + nx * sway;
+        const py = o.dy * e + ny * sway + o.g * t * t;
+        const fadeIn = Math.min(1, t / 0.12);
+        const fadeOut = t > 0.55 ? 1 - (t - 0.55) / 0.45 : 1;
+        const twinkle = o.glint ? 1 : 0.72 + 0.28 * Math.sin(t * Math.PI * (4 + freq * 2) + phase);
+        const sc = o.glint ? (t < 0.3 ? t / 0.3 : 1 - (t - 0.3) / 0.7) : 1 - t * 0.45;
+        return {
+          transform: `translate(${px}px, ${py}px) rotate(${rot0 + spinBy * t}deg) scale(${Math.max(0.001, sc)})`,
+          opacity: o.alpha * fadeIn * fadeOut * twinkle,
+          offset: t,
+        };
+      });
+
+      const a = trackAnim(
+        el.animate(frames, {
+          duration: o.dur,
+          delay: o.delay ?? 0,
+          easing: "linear",
+          fill: "both",
+        })
+      );
+      a.onfinish = () => {
+        el.remove();
+        live = Math.max(0, live - 1);
+        activeAnimations.delete(a);
+      };
+    };
+
+    let dustIdx = 0;
+    const emitDust = (x: number, y: number) => {
+      const count = Math.random() < 0.25 ? 3 : 2;
+      for (let i = 0; i < count; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const dist = 8 + Math.random() * 24;
+        const glint = Math.random() < 0.07;
+        const c = Math.random() < 0.35 ? "#fff" : palette[dustIdx++ % n];
+        mote(x + (Math.random() - 0.5) * 6, y + (Math.random() - 0.5) * 6, {
+          dx: Math.cos(ang) * dist * 0.8,
+          dy: Math.sin(ang) * dist * 0.8,
+          g: 6 + Math.random() * 16,
+          dur: (900 + Math.random() * 900) / speed,
+          size: glint ? 6 + Math.random() * 3 : 0.9 + Math.pow(Math.random(), 2.2) * 2.2,
+          color: c,
+          alpha: glint ? 0.9 : 0.45 + Math.random() * 0.4,
+          glint,
+          wobble: 2 + Math.random() * 4,
+        });
+      }
+    };
+
+    let burstIdx = 0;
+    const burst = (x: number, y: number) => {
+      const c0 = palette[burstIdx++ % n];
+      const ring = document.createElement("div");
+      Object.assign(ring.style, {
+        position: "absolute",
+        left: `${x - 12}px`,
+        top: `${y - 12}px`,
+        width: "24px",
+        height: "24px",
+        borderRadius: "50%",
+        border: `1.5px solid ${c0}`,
+        boxShadow: `0 0 14px ${mixc(c0, 45)}`,
+        pointerEvents: "none",
+        zIndex: "2",
+      });
+      overlay.appendChild(ring);
+      const ra = trackAnim(
+        ring.animate(
+          [
+            { transform: "scale(.3)", opacity: 0.8 },
+            { transform: "scale(2.3)", opacity: 0 },
+          ],
+          { duration: 760 / speed, easing: EASE_OUT_EXPO }
+        )
+      );
+      ra.onfinish = () => {
+        ring.remove();
+        activeAnimations.delete(ra);
+      };
+
+      for (let i = 0; i < 14; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const dist = 14 + Math.random() * 30;
+        mote(x, y, {
+          dx: Math.cos(ang) * dist,
+          dy: Math.sin(ang) * dist,
+          g: 8 + Math.random() * 14,
+          dur: (800 + Math.random() * 700) / speed,
+          delay: (Math.random() * 60) / speed,
+          size: 0.9 + Math.pow(Math.random(), 2) * 2.2,
+          color: Math.random() < 0.3 ? "#fff" : palette[(i + burstIdx) % n],
+          alpha: 0.5 + Math.random() * 0.4,
+          wobble: 2 + Math.random() * 4,
+        });
+      }
+      for (let i = 0; i < 2; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const dist = 12 + Math.random() * 22;
+        mote(x, y, {
+          dx: Math.cos(ang) * dist,
+          dy: Math.sin(ang) * dist,
+          g: 6,
+          dur: (900 + Math.random() * 500) / speed,
+          size: 6 + Math.random() * 4,
+          color: palette[(i + burstIdx) % n],
+          alpha: 1,
+          glint: true,
+        });
+      }
+    };
+
+    const breathe = (x: number, y: number, w: number, h: number, radius: string, ms: number) => {
+      const ring = document.createElement("div");
+      Object.assign(ring.style, {
+        position: "absolute",
+        left: `${x}px`,
+        top: `${y}px`,
+        width: `${w}px`,
+        height: `${h}px`,
+        boxSizing: "border-box",
+        borderRadius: radius,
+        border: `1px solid ${mixc(P0, 70)}`,
+        boxShadow: `0 0 16px ${mixc(P1, 28)}`,
+        pointerEvents: "none",
+        zIndex: "2",
+      });
+      overlay.appendChild(ring);
+      const a = trackAnim(
+        ring.animate(
+          [
+            { transform: "scale(1)", opacity: 0 },
+            { opacity: 0.8, offset: 0.25 },
+            { transform: `scale(${1 + clamp(14 / Math.max(w, h), 0.012, 0.06)})`, opacity: 0 },
+          ],
+          { duration: ms * 1.4, easing: EASE_OUT_EXPO }
+        )
+      );
+      a.onfinish = () => {
+        ring.remove();
+        activeAnimations.delete(a);
+      };
+    };
+
+    const makeCursor = (H: number) => {
       const el = document.createElement("div");
       Object.assign(el.style, {
         position: "absolute",
@@ -250,21 +387,74 @@ export function DesignCursor({
         opacity: "0",
         transition: "opacity .3s",
         willChange: "transform",
-      } as Partial<CSSStyleDeclaration>);
-      el.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="display:block;filter:drop-shadow(0 2px 3px rgba(0,0,0,.25))"><path d="M4 2.5l15 8.2-6.6 1.9-2.4 6.9L4 2.5z" fill="${color}" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
-      const tag = chip(label);
-      tag.style.left = "14px";
-      tag.style.top = "20px";
-      el.appendChild(tag);
+        pointerEvents: "none",
+      });
+
+      const halo = document.createElement("div");
+      Object.assign(halo.style, {
+        position: "absolute",
+        left: "-24px",
+        top: "-26px",
+        width: "56px",
+        height: "56px",
+        borderRadius: "50%",
+        background: conicFull,
+        filter: "blur(14px)",
+        opacity: "0.5",
+      });
+      trackAnim(
+        halo.animate([{ transform: "rotate(0deg)" }, { transform: "rotate(360deg)" }], {
+          duration: 4500,
+          iterations: Infinity,
+          easing: "linear",
+        })
+      );
+      trackAnim(
+        halo.animate({ opacity: [0.35, 0.7, 0.35] }, { duration: 2200, iterations: Infinity, easing: "ease-in-out" })
+      );
+
+      const arrow = document.createElement("div");
+      Object.assign(arrow.style, {
+        position: "relative",
+        transformOrigin: "4px 2px",
+      });
+      const gid = `dcg${Math.random().toString(36).slice(2, 8)}`;
+      const stops = palette
+        .map((c, i) => `<stop offset="${(i / (n - 1)) * 100}%" stop-color="${c}"/>`)
+        .join("");
+      arrow.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="display:block;filter:drop-shadow(0 3px 6px rgba(20,10,60,.35))"><defs><linearGradient id="${gid}" x1="4" y1="2" x2="18" y2="20" gradientUnits="userSpaceOnUse">${stops}</linearGradient></defs><path d="M4 2.5l15 8.2-6.6 1.9-2.4 6.9L4 2.5z" fill="url(#${gid})" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg>`;
+
+      const tag = pill(label, { dot: true });
+      tag.el.style.left = "16px";
+      tag.el.style.top = "22px";
+
+      el.append(halo, arrow, tag.el);
 
       const pos = { x: 0, y: 0 };
+      let last: { x: number; y: number } | null = null;
+      let tilt = 0;
+
       const set = (x: number, y: number) => {
+        const vx = x - pos.x;
         pos.x = x;
         pos.y = y;
         el.style.transform = `translate3d(${x - 4}px, ${y - 2}px, 0)`;
+        tilt += (clamp(vx * 0.7, -14, 14) - tilt) * 0.3;
+        arrow.style.transform = `rotate(${tilt}deg)`;
+        if (!last) {
+          last = { x, y };
+        } else if (y < H && Math.hypot(x - last.x, y - last.y) > 8) {
+          emitDust(x, y);
+          last = { x, y };
+        }
       };
 
-      /* curved, human-ish movement */
+      const click = () => {
+        trackAnim(
+          arrow.animate({ scale: ["1", "0.84", "1.05", "1"] }, { duration: 340 / speed, easing: "ease-in-out" })
+        );
+      };
+
       const moveTo = (x: number, y: number, ms: number, ctl: Ctl) => {
         const sx = pos.x;
         const sy = pos.y;
@@ -274,19 +464,30 @@ export function DesignCursor({
         const bend = Math.min(70, dist * 0.22) * (Math.random() < 0.5 ? -1 : 1);
         const cx = (sx + x) / 2 - (dy / dist) * bend;
         const cy = (sy + y) / 2 + (dx / dist) * bend;
-        return tween(ms, ctl, (t) => {
-          const e = easeInOut(t);
-          const a = (1 - e) * (1 - e);
-          const b = 2 * (1 - e) * e;
-          const c = e * e;
-          set(a * sx + b * cx + c * x, a * sy + b * cy + c * y);
+        return new Promise<void>((resolve, reject) => {
+          const t0 = performance.now();
+          const frame = (now: number) => {
+            if (ctl.cancelled) {
+              reject(CANCEL);
+              return;
+            }
+            const t = Math.min(1, (now - t0) / Math.max(1, ms));
+            const e = easeInOut(t);
+            const a = (1 - e) * (1 - e);
+            const b = 2 * (1 - e) * e;
+            const c = e * e;
+            set(a * sx + b * cx + c * x, a * sy + b * cy + c * y);
+            if (t < 1) requestAnimationFrame(frame);
+            else resolve();
+          };
+          requestAnimationFrame(frame);
         });
       };
 
-      return { el, set, moveTo, pos };
+      return { el, set, moveTo, click, pos };
     };
 
-    const makeBox = (x: number, y: number, name: string, chrome: boolean) => {
+    const makeBox = (x: number, y: number, name: string, chrome: boolean, radius: string) => {
       const el = document.createElement("div");
       Object.assign(el.style, {
         position: "absolute",
@@ -295,82 +496,243 @@ export function DesignCursor({
         width: "0px",
         height: "0px",
         boxSizing: "border-box",
-        border: `1.5px dashed ${color}`,
-        background: `color-mix(in srgb, ${color} 9%, transparent)`,
-        transition: "opacity .5s, background .4s, border-color .4s",
+        borderRadius: radius,
         zIndex: "1",
-      } as Partial<CSSStyleDeclaration>);
+        pointerEvents: "none",
+        transition: "opacity .6s",
+      });
 
-      const nameChip = chip(name);
-      nameChip.style.opacity = "0";
-      if (y < 24) {
-        nameChip.style.left = "4px";
-        nameChip.style.top = "4px";
-      } else {
-        nameChip.style.left = "-1px";
-        nameChip.style.top = "-22px";
-      }
+      const glow = document.createElement("div");
+      Object.assign(glow.style, {
+        position: "absolute",
+        inset: "-6px",
+        borderRadius: "inherit",
+        background: grad(120),
+        filter: "blur(18px)",
+        opacity: "0",
+        transition: "opacity .45s",
+        zIndex: "-1",
+      });
 
-      const dim = chip("0 × 0");
-      dim.style.left = "50%";
-      dim.style.top = "100%";
-      dim.style.transform = "translate(-50%, 6px)";
+      const fill = document.createElement("div");
+      Object.assign(fill.style, {
+        position: "absolute",
+        inset: "0",
+        borderRadius: "inherit",
+        background: `linear-gradient(135deg, ${mixc(P0, 13)}, ${mixc(P1, 8)} 55%, ${mixc(P3, 11)})`,
+        opacity: "0",
+        transition: "opacity .35s",
+      });
+      requestAnimationFrame(() => (fill.style.opacity = "1"));
 
-      const handles = [0, 1].flatMap((cx) =>
-        [0, 1].map((cy) => {
-          const h = document.createElement("span");
-          Object.assign(h.style, {
-            position: "absolute",
-            left: `${cx * 100}%`,
-            top: `${cy * 100}%`,
-            width: "7px",
-            height: "7px",
-            transform: "translate(-50%, -50%)",
-            background: "#fff",
-            border: `1.5px solid ${color}`,
-            boxSizing: "border-box",
-            opacity: "0",
-            transition: "opacity .2s",
-          } as Partial<CSSStyleDeclaration>);
-          return h;
+      const ring = document.createElement("div");
+      Object.assign(ring.style, {
+        position: "absolute",
+        inset: "0",
+        borderRadius: "inherit",
+        padding: "1.5px",
+        boxSizing: "border-box",
+        background: grad(135, 55),
+        transition: "opacity .5s",
+      });
+      const maskImg = "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)";
+      ring.style.setProperty("-webkit-mask", maskImg);
+      ring.style.setProperty("-webkit-mask-composite", "xor");
+      ring.style.setProperty("mask", maskImg);
+      ring.style.setProperty("mask-composite", "exclude");
+
+      const spinner = document.createElement("div");
+      Object.assign(spinner.style, {
+        position: "absolute",
+        left: "50%",
+        top: "50%",
+        width: "8px",
+        height: "8px",
+        marginLeft: "-4px",
+        marginTop: "-4px",
+        background: comet,
+        transition: "opacity .4s",
+      });
+      ring.appendChild(spinner);
+      const spin = trackAnim(
+        spinner.animate([{ transform: "rotate(0deg)" }, { transform: "rotate(360deg)" }], {
+          duration: 2000,
+          iterations: Infinity,
+          easing: "linear",
         })
       );
 
-      if (chrome) el.append(nameChip, dim, ...handles);
+      const nameChip = pill(name, { dot: true });
+      nameChip.el.style.opacity = "0";
+      if (y < 30) {
+        nameChip.el.style.left = "8px";
+        nameChip.el.style.top = "8px";
+      } else {
+        nameChip.el.style.left = "0px";
+        nameChip.el.style.top = "-26px";
+      }
+
+      const dim = pill("0 × 0", { mono: true });
+      dim.el.style.left = "50%";
+      dim.el.style.top = "100%";
+      dim.el.style.transform = "translate(-50%, 8px)";
+
+      el.append(fill, ring);
+      if (chrome) {
+        el.prepend(glow);
+        el.append(nameChip.el, dim.el);
+      }
       overlay.appendChild(el);
+
+      const decelerate = () => {
+        const t0 = performance.now();
+        const D = 750;
+        const step = (now: number) => {
+          const t = Math.min(1, (now - t0) / D);
+          spin.playbackRate = Math.max(0.0001, 1 - easeOut(t));
+          if (t < 1) requestAnimationFrame(step);
+          else spin.pause();
+        };
+        requestAnimationFrame(step);
+      };
 
       return {
         el,
         setSize(w: number, h: number) {
           el.style.width = `${w}px`;
           el.style.height = `${h}px`;
-          dim.textContent = `${Math.round(w)} × ${Math.round(h)}`;
+          dim.text.textContent = `${Math.round(w)} × ${Math.round(h)}`;
+          const d = Math.max(8, Math.hypot(w, h) + 6);
+          spinner.style.width = `${d}px`;
+          spinner.style.height = `${d}px`;
+          spinner.style.marginLeft = `${-d / 2}px`;
+          spinner.style.marginTop = `${-d / 2}px`;
         },
         select() {
-          nameChip.style.opacity = "1";
-          handles.forEach((h) => (h.style.opacity = "1"));
+          if (!chrome) return;
+          nameChip.el.style.opacity = "1";
+          glow.style.opacity = "0.5";
+          trackAnim(
+            el.animate(
+              [
+                { boxShadow: `0 0 0 0 ${mixc(P1, 50)}` },
+                { boxShadow: `0 0 0 14px ${mixc(P1, 0)}` },
+              ],
+              { duration: 560 / speed, easing: "ease-out" }
+            )
+          );
         },
         settle() {
           if (!chrome) {
+            spin.cancel();
             el.style.opacity = "0";
             return;
           }
-          nameChip.style.opacity = "0";
-          dim.style.opacity = "0";
-          handles.forEach((h) => (h.style.opacity = "0"));
-          el.style.background = "transparent";
-          el.style.border = `1px solid color-mix(in srgb, ${color} 45%, transparent)`;
+          decelerate();
+          spinner.style.transition = `opacity .9s ${EASE_SOFT}`;
+          spinner.style.opacity = "0";
+          glow.style.transition = `opacity 1s ${EASE_SOFT}`;
+          glow.style.opacity = "0";
+          fill.style.transition = `opacity .8s ${EASE_SOFT}`;
+          fill.style.opacity = "0";
+          ring.style.transition = `opacity .9s ${EASE_SOFT}`;
+          ring.style.opacity = "0.5";
+          nameChip.el.style.transition = `opacity .5s ${EASE_SOFT}`;
+          nameChip.el.style.opacity = "0";
+          dim.el.style.transition = `opacity .5s ${EASE_SOFT}`;
+          dim.el.style.opacity = "0";
+          trackAnim(
+            el.animate(
+              [
+                { boxShadow: `0 0 0 0 ${mixc(P1, 38)}` },
+                { boxShadow: `0 0 0 18px ${mixc(P1, 0)}` },
+              ],
+              { duration: 900 / speed, easing: EASE_OUT_EXPO }
+            )
+          );
+        },
+        fade() {
+          el.style.transition = `opacity 1s ${EASE_SOFT}`;
+          el.style.opacity = "0";
         },
       };
     };
 
-    /* ---------- one full "design" pass ---------- */
+    const collect = (
+      rootElem: HTMLElement,
+      maxDepthVal: number,
+      maxStepsVal: number,
+      sel?: string
+    ): El[] => {
+      const out: El[] = [rootElem];
+
+      if (sel) {
+        rootElem.querySelectorAll<El>(sel).forEach((el) => {
+          if (el === rootElem) return;
+          const r = el.getBoundingClientRect();
+          if (r.width < 6 || r.height < 6) return;
+          out.push(el);
+        });
+        return out.slice(0, maxStepsVal);
+      }
+
+      const SKIP = new Set(["script", "style", "br", "wbr", "template", "noscript"]);
+
+      const walk = (parent: Element, depth: number) => {
+        if (depth > maxDepthVal) return;
+        for (const child of Array.from(parent.children)) {
+          if (!(child instanceof HTMLElement || child instanceof SVGSVGElement)) continue;
+          if (SKIP.has(child.tagName.toLowerCase())) continue;
+          if (getComputedStyle(child).display === "none") continue;
+          const r = child.getBoundingClientRect();
+          if (r.width < 6 || r.height < 6) continue;
+          out.push(child);
+          if (!(child instanceof SVGSVGElement)) walk(child, depth + 1);
+        }
+      };
+
+      walk(rootElem, 1);
+      return out.slice(0, maxStepsVal);
+    };
+
+    const visibleRect = (el: El, stop: Element) => {
+      const r = el.getBoundingClientRect();
+      let left = r.left;
+      let top = r.top;
+      let right = r.right;
+      let bottom = r.bottom;
+      for (let p = el.parentElement; p && p !== stop; p = p.parentElement) {
+        const cs = getComputedStyle(p);
+        if (cs.overflowX !== "visible" || cs.overflowY !== "visible") {
+          const pr = p.getBoundingClientRect();
+          left = Math.max(left, pr.left);
+          top = Math.max(top, pr.top);
+          right = Math.min(right, pr.right);
+          bottom = Math.min(bottom, pr.bottom);
+        }
+      }
+      return { left, top, width: Math.max(0, right - left), height: Math.max(0, bottom - top) };
+    };
+
+    const radiusOf = (el: El) => {
+      const r = getComputedStyle(el).borderRadius;
+      return !r || r === "0px" ? "6px" : r;
+    };
+
+    type Kind = "frame" | "card" | "item" | "quick";
+    const PROFILE: Record<
+      Kind,
+      { travel: [number, number]; draw: [number, number]; hold: number; settle: number; chrome: boolean }
+    > = {
+      frame: { travel: [220, 420], draw: [480, 720], hold: 80, settle: 100, chrome: true },
+      card: { travel: [190, 360], draw: [250, 420], hold: 40, settle: 60, chrome: true },
+      item: { travel: [95, 200], draw: [120, 220], hold: 0, settle: 40, chrome: true },
+      quick: { travel: [40, 70], draw: [50, 80], hold: 0, settle: 20, chrome: false },
+    };
 
     const runOnce = async (ctl: Ctl) => {
       const targets = collect(content, maxDepth, maxSteps ?? (selector ? 80 : 14), selector);
       targets.forEach((el) => {
-        /* the content root starts hidden via React's inline style; once
-           revealed it should simply inherit (visible) */
         hidden.set(el, el === content ? "visible" : el.style.visibility);
         el.style.visibility = "hidden";
       });
@@ -378,15 +740,16 @@ export function DesignCursor({
       const W = root.getBoundingClientRect().width;
       const H = root.getBoundingClientRect().height;
 
-      const cursor = makeCursor();
+      const cursor = makeCursor(H);
       overlay.appendChild(cursor.el);
       cursor.set(W * 0.8, H + 40);
       requestAnimationFrame(() => (cursor.el.style.opacity = "1"));
 
       const boxes: ReturnType<typeof makeBox>[] = [];
-      await sleep(300 / speed, ctl);
+      await safeSetTimeout(() => {}, 300 / speed, ctl);
 
       for (const el of targets) {
+        if (ctl.cancelled) break;
         const rr = root.getBoundingClientRect();
         const v = visibleRect(el, content);
         const x = v.left - rr.left;
@@ -404,56 +767,91 @@ export function DesignCursor({
         const P = PROFILE[kind];
         const name =
           el.getAttribute("data-dc-name") ?? (el === content ? "frame" : el.tagName.toLowerCase());
+        const radius = radiusOf(el);
 
         const reveal = () => {
           el.style.visibility = hidden.get(el) ?? "";
           hidden.delete(el);
-          if (kind !== "frame") {
-            el.animate({ opacity: [0, 1] }, { duration: 420, easing: "cubic-bezier(.22,1,.36,1)" });
-          }
+          if (kind === "frame") return;
+          const dur = (kind === "quick" ? 300 : 820) / speed;
+          trackAnim(
+            el.animate(
+              [
+                {
+                  clipPath: `inset(50% 50% 50% 50% round ${radius})`,
+                  filter: "blur(12px) saturate(1.4)",
+                  opacity: 0,
+                },
+                { opacity: 1, filter: "blur(3px) saturate(1.15)", offset: 0.45 },
+                { clipPath: "inset(-40px)", filter: "blur(0px) saturate(1)", opacity: 1 },
+              ],
+              { duration: dur, easing: EASE_OUT_EXPO }
+            )
+          );
+          if (kind !== "quick") breathe(x, y, w, h, radius, dur);
         };
 
-        /* fully clipped away: just show it */
         if (w < 4 || h < 4) {
           reveal();
           continue;
         }
 
         const travel = Math.hypot(x - cursor.pos.x, y - cursor.pos.y);
-        await cursor.moveTo(x, y, clamp(P.travel[0] + travel * 0.4, P.travel[0], P.travel[1]) / speed, ctl);
+        await cursor.moveTo(
+          x,
+          y,
+          (clamp(P.travel[0] + travel * 0.4, P.travel[0], P.travel[1]) * 1.1) / speed,
+          ctl
+        );
 
-        if (P.chrome) pulse(x, y);
-        const box = makeBox(x, y, name, P.chrome);
+        if (P.chrome) {
+          burst(x, y);
+          cursor.click();
+        }
+        const box = makeBox(x, y, name, P.chrome, radius);
         boxes.push(box);
 
         const size = Math.sqrt(w * h);
-        await tween(clamp(P.draw[0] + size * 0.8, P.draw[0], P.draw[1]) / speed, ctl, (t) => {
-          const e = easeOut(t);
-          box.setSize(w * e, h * e);
-          cursor.set(x + w * e, y + h * e);
+        await new Promise<void>((resolve, reject) => {
+          const t0 = performance.now();
+          const drawMs = clamp(P.draw[0] + size * 0.8, P.draw[0], P.draw[1]) / speed;
+          const frame = (now: number) => {
+            if (ctl.cancelled) {
+              reject(CANCEL);
+              return;
+            }
+            const t = Math.min(1, (now - t0) / Math.max(1, drawMs));
+            const e = easeOut(t);
+            box.setSize(w * e, h * e);
+            cursor.set(x + w * e, y + h * e);
+            if (t < 1) requestAnimationFrame(frame);
+            else resolve();
+          };
+          requestAnimationFrame(frame);
         });
 
         box.select();
-        if (P.chrome) pulse(x + w, y + h);
-        await sleep(P.hold / speed, ctl);
+        if (P.chrome) {
+          burst(x + w, y + h);
+          cursor.click();
+        }
+        await safeSetTimeout(() => {}, P.hold / speed, ctl);
 
-        /* reveal the real element */
         reveal();
         box.settle();
-        await sleep(P.settle / speed, ctl);
+        await safeSetTimeout(() => {}, P.settle / speed, ctl);
       }
 
-      /* wrap up: fade wireframes, cursor leaves */
-      await sleep(300 / speed, ctl);
-      boxes.forEach((b) => (b.el.style.opacity = "0"));
+      if (ctl.cancelled) return;
+      await safeSetTimeout(() => {}, 300 / speed, ctl);
+      boxes.forEach((b) => b.fade());
+
       await cursor.moveTo(W * 0.85, H + 40, 550 / speed, ctl);
       cursor.el.style.opacity = "0";
-      await sleep(400, ctl);
+      await safeSetTimeout(() => {}, 1800 / speed, ctl);
       clearOverlay();
       restoreAll();
     };
-
-    /* ---------- lifecycle ---------- */
 
     let ctl: Ctl | null = null;
     let played = false;
@@ -463,12 +861,13 @@ export function DesignCursor({
       const c: Ctl = { cancelled: false };
       ctl = c;
       (async () => {
-        await sleep(startDelay, c);
+        await safeSetTimeout(() => {}, startDelay, c);
         do {
+          if (c.cancelled) break;
           await runOnce(c);
           played = true;
-          if (!loop) return;
-          await sleep(loopDelay, c);
+          if (!loop || c.cancelled) return;
+          await safeSetTimeout(() => {}, loopDelay, c);
         } while (!c.cancelled);
       })()
         .catch((e) => {
@@ -479,8 +878,6 @@ export function DesignCursor({
         });
     };
 
-    /* Cancel any run and put everything back in the pre-animation state
-       (hidden), ready to play again. */
     const stop = () => {
       if (ctl) {
         ctl.cancelled = true;
@@ -488,7 +885,9 @@ export function DesignCursor({
       }
       clearOverlay();
       restoreAll();
-      content.style.visibility = "hidden";
+      if (content) {
+        content.style.visibility = "hidden";
+      }
     };
 
     let io: IntersectionObserver | null = null;
@@ -499,7 +898,7 @@ export function DesignCursor({
           if (entry.isIntersecting) {
             start();
           } else if (replay || !played) {
-            stop(); /* hide again so it replays on the way back */
+            stop();
           }
         },
         { threshold: 0.1 }
@@ -513,12 +912,10 @@ export function DesignCursor({
       io?.disconnect();
       stop();
     };
-  }, [color, label, speed, loop, replay, loopDelay, startDelay, maxDepth, maxSteps, selector, quickSelector, trigger]);
+  }, [color, paletteKey, label, speed, loop, replay, loopDelay, startDelay, maxDepth, maxSteps, selector, quickSelector, trigger]);
 
   return (
     <div ref={rootRef} className={className} style={{ position: "relative", ...style }}>
-      {/* Hidden from the very first paint so nothing flashes before the
-          animation starts; the effect reveals it. No-JS users still see it. */}
       <noscript>
         <style>{`.dc-content{visibility:visible!important}`}</style>
       </noscript>
@@ -538,6 +935,6 @@ export function DesignCursor({
       />
     </div>
   );
-}
+};
 
 export default DesignCursor;

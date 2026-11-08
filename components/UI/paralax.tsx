@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {  useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import ToothlessModel from "./toothlessModal";
 import {
   motion,
@@ -178,7 +178,8 @@ const ParallaxBackground = ({ children, overlay }: ParallaxBackgroundProps) => {
   }, [reduceMotion, rawX, rawY]);
 
   return (
-    <section ref={containerRef} id="parallax-bg" className="relative h-[450lvh]">
+
+    <section  ref={containerRef}  id="parallax-bg" className="relative h-[450lvh]">
       <div className="sticky top-0 isolate h-lvh w-full overflow-hidden">
         {/* Child content (fluid) */}
         <div className="absolute inset-0 z-0">

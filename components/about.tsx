@@ -4,7 +4,7 @@ import StackIcon from "tech-stack-icons";
 import { Globe } from "./UI/globe";
 import { motion, useInView } from "motion/react";
 import "../app/styles/bento.css";
-import DesignCursor from "./UI/designCursor";
+import {DesignCursor} from "./UI/designCursor";
 import {
   MdEmail,
   MdCall,
@@ -39,20 +39,7 @@ const toolkitIcons: Array<{
   { name: "firebase", label: "Firebase", short: "FB", delay: 0.7, y: [0, 4, 0] },
 ];
 
-/**
- * ONE <DesignCursor> directs the whole section.
- *
- * The order the cursor works in is simply the order of the markup below.
- * Elements opt in with data attributes (no wrapper elements, so layout,
- * sticky and Motion behave exactly as before):
- *
- *   data-dc="card"      a big surface   -> slower drag, handles + size tag
- *   data-dc             a detail inside -> quicker
- *   data-dc-name="..."  label on the selection tag
- *
- * The toolkit icons are matched by `quickSelector` and are drawn in rapid
- * succession with no tags.
- */
+
 const About = () => {
   const constraintRef = useRef<HTMLDivElement>(null);
 
