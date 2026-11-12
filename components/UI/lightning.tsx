@@ -22,7 +22,7 @@ type Kind = "ground" | "crawler" | "sheet";
 
 interface Palette {
   outer: RGB; // wide atmospheric halo
-  mid: RGB; // ionised air around the channel
+  mid: RGB; // ionised air around the channelcd bento-g
   inner: RGB; // hot plasma
   flash: RGB; // sky illumination
   cloud: RGB; // light scattered inside the clouds

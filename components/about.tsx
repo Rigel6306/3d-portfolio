@@ -4,7 +4,7 @@ import StackIcon from "tech-stack-icons";
 import { Globe } from "./UI/globe";
 import { motion, useInView } from "motion/react";
 import "../app/styles/bento.css";
-import {DesignCursor} from "./UI/designCursor";
+import { DesignCursor } from "react-design-cursor";
 import {
   MdEmail,
   MdCall,
@@ -12,6 +12,8 @@ import {
   MdContentCopy,
   MdCheck,
 } from "react-icons/md";
+import { LuDownload } from "react-icons/lu";
+
 
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 
@@ -23,21 +25,21 @@ const toolkitIcons: Array<{
   delay: number;
   y: [number, number, number];
 }> = [
-  { name: "docker", label: "Docker", short: "D", delay: 0.05, y: [0, -4, 0] },
-  { name: "typescript", label: "TypeScript", short: "TS", delay: 0.1, y: [0, 4, 0] },
-  { name: "nextjs2", label: "Next.js", short: "N", delay: 0.15, y: [0, -4, 0] },
-  { name: "js", label: "JavaScript", short: "JS", delay: 0.2, y: [0, 4, 0] },
-  { name: "expressjs", label: "Express", short: "EX", delay: 0.25, y: [0, -4, 0] },
-  { name: "react", label: "React", short: "R", delay: 0.3, y: [0, 4, 0] },
-  { name: "expo", label: "React Native", short: "RN", delay: 0.35, y: [0, -4, 0] },
-  { name: "threejs", label: "Three.js", short: "3D", delay: 0.4, y: [0, 4, 0] },
-  { name: "motion", label: "Motion", short: "M", delay: 0.45, y: [0, -4, 0] },
-  { name: "affinityphoto", label: "Design", short: "UX", delay: 0.5, y: [0, 4, 0] },
-  { name: "mongodb", label: "MongoDB", short: "MD", delay: 0.55, y: [0, -4, 0] },
-  { name: "mysql", label: "MySQL", short: "SQL", delay: 0.6, y: [0, 4, 0] },
-  { name: "nodejs", label: "Node.js", short: "Node", delay: 0.65, y: [0, -4, 0] },
-  { name: "firebase", label: "Firebase", short: "FB", delay: 0.7, y: [0, 4, 0] },
-];
+    { name: "docker", label: "Docker", short: "D", delay: 0.05, y: [0, -4, 0] },
+    { name: "typescript", label: "TypeScript", short: "TS", delay: 0.1, y: [0, 4, 0] },
+    { name: "nextjs2", label: "Next.js", short: "N", delay: 0.15, y: [0, -4, 0] },
+    { name: "js", label: "JavaScript", short: "JS", delay: 0.2, y: [0, 4, 0] },
+    { name: "expressjs", label: "Express", short: "EX", delay: 0.25, y: [0, -4, 0] },
+    { name: "react", label: "React", short: "R", delay: 0.3, y: [0, 4, 0] },
+    { name: "expo", label: "React Native", short: "RN", delay: 0.35, y: [0, -4, 0] },
+    { name: "threejs", label: "Three.js", short: "3D", delay: 0.4, y: [0, 4, 0] },
+    { name: "motion", label: "Motion", short: "M", delay: 0.45, y: [0, -4, 0] },
+    { name: "affinityphoto", label: "Design", short: "UX", delay: 0.5, y: [0, 4, 0] },
+    { name: "mongodb", label: "MongoDB", short: "MD", delay: 0.55, y: [0, -4, 0] },
+    { name: "mysql", label: "MySQL", short: "SQL", delay: 0.6, y: [0, 4, 0] },
+    { name: "nodejs", label: "Node.js", short: "Node", delay: 0.65, y: [0, -4, 0] },
+    { name: "firebase", label: "Firebase", short: "FB", delay: 0.7, y: [0, 4, 0] },
+  ];
 
 
 const About = () => {
@@ -67,6 +69,9 @@ const About = () => {
 
   return (
     <DesignCursor
+      cursor={{ style: 'gradient', halo: true, clickSquish: true }}
+      colors={["#00f5a0", "#00d9f5", "#7c5cff"]}
+      box={{ orbit: false }}
       style={{ position: "sticky" }}
       className="md:top-20 mt-10"
       label="Charitha"
@@ -75,6 +80,7 @@ const About = () => {
       startDelay={400}
       selector="[data-dc], .toolkit-grid > *"
       quickSelector=".toolkit-grid > *"
+      effects={{ reveal: "fade" }}
     >
       <section
         id="about"
@@ -118,7 +124,7 @@ const About = () => {
               stories on web and mobile. Whether it's sculpting 3D worlds in
               Three.js, animating smooth scrolls with GSAP, or weaving React magic
               into responsive layouts, I thrive on blending code with creativity.
-              My mission? Build apps that don't just work — they delight.
+              My mission? Build apps that don't just work, they delight.
             </p>
           </motion.div>
 
@@ -165,7 +171,7 @@ const About = () => {
           <motion.a
             data-dc="card"
             data-dc-name="button"
-            href="/resume.pdf"
+            href="https://raw.githubusercontent.com/Rigel6306/3d-portfolio/master/docs/Charitha_Iravana_CV_Updated.pdf"
             download
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
@@ -174,30 +180,11 @@ const About = () => {
           >
             <div className="pointer-events-none absolute -top-24 -left-16 h-56 w-56 rounded-full bg-[#4545467a] blur-3xl" />
 
-            <svg
-              data-dc
-              data-dc-name="icon"
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-              className="z-10"
-            >
-              <path d="M12 3v12" />
-              <path d="m7 10 5 5 5-5" />
-              <path d="M5 21h14" />
-            </svg>
+            <LuDownload size={35} />
             <p data-dc data-dc-name="label" className="text-2xl z-10 font-extrabold">
               My resume
             </p>
-            <span data-dc className="text-sm text-white/60 z-10">
-              PDF / download
-            </span>
+            
           </motion.a>
 
           {/* Location */}
